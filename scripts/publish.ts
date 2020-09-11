@@ -4,11 +4,11 @@ import archiver from 'archiver';
 import path from 'path';
 import { createWriteStream } from 'fs';
 import mkdirp from 'mkdirp';
-import { version } from '../package.json';
+import { name, version } from '../package.json';
 
 export const main = async (source: string, dist: string) => {
   mkdirp.sync(dist);
-  const output = createWriteStream(path.resolve(dist, `v${version}.zip`));
+  const output = createWriteStream(path.resolve(dist, `${name}-v${version}.zip`));
   const archive = archiver('zip');
   archive.pipe(output);
   archive.directory(source, false);
