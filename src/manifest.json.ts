@@ -22,7 +22,7 @@ export = JSONFile<chrome.runtime.Manifest>(true, async () => ({
   manifest_version: 2,
   version,
   name: 'Steam Gift Pro',
-  description: 'A Chrome Extension that enhance thumbnails on Steam Gift Page, to add anchor link to store page',
+  description: 'A Chrome Extension that enhances Gift Page of Steam, to add anchor link to store page',
   author: 'whatasoda <git@whatasoda.me>',
   background: {
     scripts: ['background.js'],
