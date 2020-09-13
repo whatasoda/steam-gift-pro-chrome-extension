@@ -1,45 +1,16 @@
-const IMAGE_URL_PREFIX = 'https://cdn.cloudflare.steamstatic.com/steam/apps/';
-const STORE_URL_PREFIX = 'https://store.steampowered.com/app/';
-const BACKGROUND_ATTRIBUTE_NAME = 'data-background-image-url';
-const SELECTOR = `[${BACKGROUND_ATTRIBUTE_NAME}^="${IMAGE_URL_PREFIX}"], img[src^="${IMAGE_URL_PREFIX}"]:not(.movie_thumb)`;
+import { CONTENT_BOX_SELECTOR, renderSearchResult } from './render';
 
-const applyStoreLink = (elem: HTMLElement, listenerMap: Map<string, () => void>) => {
-  let parent: HTMLElement = elem;
-  while (parent !== document.body) {
-    if (parent instanceof HTMLAnchorElement || !parent.parentElement) {
-      return;
-    } else {
-      parent = parent.parentElement;
-    }
-  }
-
-  const imageUrl = elem.getAttribute(elem instanceof HTMLImageElement ? 'src' : BACKGROUND_ATTRIBUTE_NAME);
-  if (!imageUrl) return;
-
-  const appId = imageUrl.slice(IMAGE_URL_PREFIX.length).replace(/(?<=^\d+)\/.*$/, '');
-  const storeUrl = `${STORE_URL_PREFIX}${appId}/`;
-  if (elem.parentElement!.classList.contains('highlight_strip_item')) return;
-  if (window.location.href.startsWith(storeUrl)) return;
-
-  if (!listenerMap.has(appId)) {
-    listenerMap.set(appId, () => {
-      window.open(storeUrl, '_blank');
-    });
-  }
-  const listener = listenerMap.get(appId)!;
-
-  elem.style.cursor = 'pointer';
-  elem.removeEventListener('click', listener);
-  elem.addEventListener('click', listener);
-};
+type Timeout = ReturnType<typeof setTimeout>;
 
 export const createScanner = () => {
-  const listenerMap = new Map<string, () => void>();
+  const queue: HTMLElement[] = [];
+  const resolvedIdSet = new Set<string>();
   const scanNode = (node: Node) => {
     if (node instanceof HTMLElement) {
-      node.querySelectorAll<HTMLElement>(SELECTOR).forEach((elem) => {
-        applyStoreLink(elem, listenerMap);
+      node.querySelectorAll<HTMLElement>(CONTENT_BOX_SELECTOR).forEach((elem) => {
+        queue.push(elem);
       });
+      if (queue.length) dequeue();
     }
   };
 
@@ -48,6 +19,24 @@ export const createScanner = () => {
       addedNodes.forEach((node) => scanNode(node));
     });
   });
+
+  let timeout: Timeout | null = null;
+  const dequeue = async (self: Timeout | null = null) => {
+    if (timeout !== self) return;
+    const container = queue.shift();
+
+    if (container && !resolvedIdSet.has(container.id)) {
+      resolvedIdSet.add(container.id);
+      await renderSearchResult(container);
+    }
+
+    if (queue.length) {
+      timeout = setTimeout(() => dequeue(next), 300);
+      const next = timeout;
+    } else {
+      timeout = null;
+    }
+  };
 
   const start = () => {
     scanNode(document.body);
