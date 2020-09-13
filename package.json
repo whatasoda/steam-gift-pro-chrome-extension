@@ -10,7 +10,7 @@
     "clean:before": "rimraf dist",
     "clean:after": "rimraf 'dist/**/*.map'",
     "publish": "npm run build && ts-node-transpile-only scripts/publish.ts",
-    "version": "npm run publish",
+    "postversion": "npm run publish",
     "setup": "git branch | grep -Eq '^\\s+archives$' && echo 'This project has already set up.' || (git checkout --orphan archives && git push -u origin archives)"
   },
   "devDependencies": {
