@@ -31,10 +31,10 @@ export const renderSearchResult = async (container: HTMLElement, retryCount: num
       return onFail('No result.');
     }
 
-    const { gameList, searchPageURL, escapedTitle } = searchResult;
+    const { gameList, searchPageURL, gameTitle } = searchResult;
 
     wrapper.innerHTML = [
-      `${gameList.length} items found with <a href="${searchPageURL}" ${ANCHOR_ATTR}>'${escapedTitle}'</a>:`,
+      `${gameList.length} items found with <a href="${searchPageURL}" ${ANCHOR_ATTR}>'${gameTitle}'</a>:`,
       '<ul>',
       gameList.reduce((acc, { href, title }) => {
         return acc + `<li><a href="${href}" ${ANCHOR_ATTR}>${title}</a></li>`;

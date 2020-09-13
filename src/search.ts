@@ -1,4 +1,3 @@
-import { escapeGameTitle } from './utils/escape-game-title';
 import { sendSteamSearchMessage } from './utils/background-fetch';
 import { SEARCH_URL } from './utils/constants';
 
@@ -6,8 +5,7 @@ const LIST_START = '<!-- List Items -->';
 const LIST_END = '<!-- End List Items -->';
 
 export const steamSearch = async (gameTitle: string) => {
-  const escapedTitle = escapeGameTitle(gameTitle);
-  const rawHTML = await sendSteamSearchMessage(escapedTitle);
+  const rawHTML = await sendSteamSearchMessage(gameTitle);
 
   const listStart = rawHTML.indexOf(LIST_START);
   const listEnd = rawHTML.indexOf(LIST_END);
@@ -32,6 +30,6 @@ export const steamSearch = async (gameTitle: string) => {
     return { href, title };
   });
 
-  const searchPageURL = `${SEARCH_URL}?term=${escapedTitle}`;
-  return { gameList, searchPageURL, escapedTitle };
+  const searchPageURL = `${SEARCH_URL}?term=${encodeURIComponent(gameTitle)}`;
+  return { gameList, searchPageURL, gameTitle };
 };
