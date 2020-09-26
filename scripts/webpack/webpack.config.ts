@@ -90,11 +90,13 @@ export const createCompiler = (mode: Configuration['mode']) => {
         },
         {
           test: /\.(jpg|png|gif|webp|svg)$/i,
+          include: /\/assets\//,
           use: [
             {
-              loader: 'file-laoder',
+              loader: 'file-loader',
               options: {
                 outputPath: 'assets',
+                name: '[name].[ext]',
               },
             },
           ],

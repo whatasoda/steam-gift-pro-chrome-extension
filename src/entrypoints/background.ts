@@ -1,6 +1,12 @@
-import { handleBackgroundMessage } from '../message-handlers';
+import '../../assets/logo.png';
+import '../manifest.json';
+import { handleBackgroundMessage } from '../background/handle-message';
 
-chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
-  if (!message || typeof message !== 'object') return null;
-  return handleBackgroundMessage(message, sendResponse);
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (handleBackgroundMessage.isMessage(message)) {
+    return handleBackgroundMessage(message, sender, sendResponse);
+  } else {
+    sendResponse(void 0);
+    return null;
+  }
 });
