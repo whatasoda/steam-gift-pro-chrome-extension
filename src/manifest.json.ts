@@ -1,4 +1,5 @@
 import { version } from '../package.json';
+import { fetchBypassUrlList } from './utils/constants';
 
 const JSONFile = <T>(cacheable: boolean, gen: () => Promise<T>) => async () => ({
   cacheable,
@@ -33,5 +34,8 @@ export = JSONFile<chrome.runtime.Manifest>(true, async () => ({
       js: ['content.js'],
     },
   ],
-  permissions: ['https://store.steampowered.com/search/*'],
+  page_action: {
+    default_icon: 'assets/logo.png',
+  },
+  permissions: [...fetchBypassUrlList.map((url) => `${url}*`), 'tabs', 'activeTab'],
 }));

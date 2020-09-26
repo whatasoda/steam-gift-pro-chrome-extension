@@ -1,11 +1,11 @@
-import { sendSteamSearchMessage } from './utils/background-fetch';
-import { SEARCH_URL } from './utils/constants';
+import { SEARCH_URL } from '../utils/constants';
 
 const LIST_START = '<!-- List Items -->';
 const LIST_END = '<!-- End List Items -->';
 
-export const steamSearch = async (gameTitle: string) => {
-  const rawHTML = await sendSteamSearchMessage(gameTitle);
+export const searchSteamStore = async (gameTitle: string) => {
+  const res = await fetch(`https://store.steampowered.com/search/?term=${encodeURIComponent(gameTitle)}`);
+  const rawHTML = await res.text();
 
   const listStart = rawHTML.indexOf(LIST_START);
   const listEnd = rawHTML.indexOf(LIST_END);
