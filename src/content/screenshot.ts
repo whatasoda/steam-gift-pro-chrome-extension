@@ -1,8 +1,8 @@
 import { toPng } from 'html-to-image';
 
 export const takeScreenshot = (target: HTMLElement, title: string) => {
-  prepare().then(() => {
-    toPng(target).then((dataUrl) => {
+  return prepare().then(() => {
+    return toPng(target).then((dataUrl) => {
       const downloader = document.createElement('a');
       downloader.href = dataUrl;
       downloader.download = title;

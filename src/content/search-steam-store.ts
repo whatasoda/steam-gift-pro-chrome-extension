@@ -3,7 +3,7 @@ import { SEARCH_URL } from '../utils/constants';
 const LIST_START = '<!-- List Items -->';
 const LIST_END = '<!-- End List Items -->';
 
-export const searchSteamStore = async (gameTitle: string) => {
+export const searchSteamStore = async (gameTitle: string): Promise<SearchResult | null> => {
   const res = await fetch(`https://store.steampowered.com/search/?term=${encodeURIComponent(gameTitle)}`);
   const rawHTML = await res.text();
 
@@ -24,10 +24,14 @@ export const searchSteamStore = async (gameTitle: string) => {
     container.querySelectorAll<HTMLAnchorElement>('a[href^="https://store.steampowered.com/"]'),
   );
 
-  const gameList = elementList.map((element) => {
+  const gameList = elementList.map<GameItem>((element) => {
     const href = element.href.replace(/\?.+$/, '');
     const title = element.querySelector('span.title')?.textContent ?? 'Unknown';
-    return { href, title };
+    const img = element.querySelector<HTMLImageElement>('div.search_capsule > img');
+    const src = img?.src;
+    const srcSet = img?.srcset;
+
+    return { href, title, thumbnail: { src, srcSet } };
   });
 
   const searchPageURL = `${SEARCH_URL}?term=${encodeURIComponent(gameTitle)}`;

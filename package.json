@@ -14,7 +14,9 @@
     "setup": "git branch | grep -Eq '^\\s+archives$' && echo 'This project has already set up.' || (git checkout --orphan archives && git push -u origin archives)"
   },
   "dependencies": {
-    "html-to-image": "^0.1.1"
+    "html-to-image": "^0.1.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
   },
   "devDependencies": {
     "@types/archiver": "^3.1.0",
@@ -23,6 +25,8 @@
     "@types/jest": "^26.0.13",
     "@types/mkdirp": "^1.0.1",
     "@types/node": "^14.10.0",
+    "@types/react": "^16.9.49",
+    "@types/react-dom": "^16.9.8",
     "@types/terser-webpack-plugin": "^4.1.0",
     "@whatasoda/eslint-config": "^3.10.0",
     "@whatasoda/tsconfig": "^1.0.3",
