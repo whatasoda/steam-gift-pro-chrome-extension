@@ -1,7 +1,11 @@
-interface SearchResult {
-  gameList: GameItem[];
-  searchPageURL: string;
-  gameTitle: string;
+interface SteamSearchResult {
+  games: GameItem[];
+  next: SetamSearchPrams | null;
+}
+interface SetamSearchPrams {
+  term: string;
+  start: number;
+  count: number;
 }
 
 interface GameItem {

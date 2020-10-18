@@ -1,8 +1,8 @@
-export const SEARCH_URL = 'https://store.steampowered.com/search/';
+export const SEARCH_URL = 'https://store.steampowered.com/search/results/';
 
 export type FetchBypassUrl = typeof fetchBypassUrlList[number];
 export const fetchBypassUrlList = [
-  SEARCH_URL,
+  'https://store.steampowered.com/search/results/',
   'https://steamcommunity-a.akamaihd.net/',
   'https://steamcdn-a.akamaihd.net/',
 ] as const;

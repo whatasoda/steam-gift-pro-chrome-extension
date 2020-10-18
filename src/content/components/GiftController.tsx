@@ -4,7 +4,7 @@ import { takeScreenshot } from '../screenshot';
 import { searchSteamStore } from '../search-steam-store';
 
 export const GiftController = ({ container, title }: GiftItem) => {
-  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
+  const [searchResult, setSearchResult] = useState<SteamSearchResult | null>(null);
 
   const portalContainer = useMemo(() => document.createElement('div'), []);
   useEffect(() => {
@@ -37,7 +37,7 @@ export const GiftController = ({ container, title }: GiftItem) => {
       <div style={{ marginTop: '8px' }}>
         {searchResult ? (
           <div style={{ height: '400px', overflow: 'auto' }}>
-            {searchResult.gameList.map(({ title, href, thumbnail }) => (
+            {searchResult.games.map(({ title, href, thumbnail }) => (
               <a
                 key={href}
                 href={href}
@@ -64,7 +64,7 @@ export const GiftController = ({ container, title }: GiftItem) => {
             onClick={(event) => {
               event.preventDefault();
               if (title) {
-                searchSteamStore(title).then(setSearchResult);
+                searchSteamStore({ term: title, start: 0, count: 50 }).then(setSearchResult);
               }
             }}
           />

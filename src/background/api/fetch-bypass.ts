@@ -7,10 +7,18 @@ export const fetchBypass = (_: any, baseUrl: typeof fetchBypassUrlList[number], 
 
   const url = new URL(baseUrl + extraUrl);
   switch (baseUrl) {
-    case 'https://store.steampowered.com/search/': {
-      const term = url.searchParams.get('term');
-      if (url.pathname === '/search/' && term !== null) {
-        return customFetch(`https://store.steampowered.com/search/?term=${encodeURIComponent(term)}`, { mode: 'cors' });
+    case 'https://store.steampowered.com/search/results/': {
+      const { searchParams } = url;
+      const infinite = searchParams.get('infinite') || '0';
+      const term = searchParams.get('term');
+      const start = searchParams.get('start') || '0';
+      const count = searchParams.get('count') || '50';
+      if (url.pathname === '/search/results/' && term !== null && /^\d+$/.test(start) && /^\d+$/.test(count)) {
+        return customFetch(
+          'https://store.steampowered.com/search/results/?' +
+            new URLSearchParams({ infinite, term, start, count }).toString(),
+          { mode: 'cors' },
+        );
       }
       return null;
     }
