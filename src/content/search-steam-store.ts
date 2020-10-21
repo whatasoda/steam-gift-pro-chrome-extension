@@ -26,24 +26,22 @@ export const searchSteamStore = async ({ term, start, count }: SetamSearchPrams)
   const container = document.createElement('div');
   container.innerHTML = results_html;
 
-  const elementList = Array.from(
-    container.querySelectorAll<HTMLAnchorElement>('a[href^="https://store.steampowered.com/"]'),
-  );
+  const games = Array.from(container.children)
+    .filter((child): child is HTMLAnchorElement => child instanceof HTMLAnchorElement)
+    .map<GameItem>((element) => {
+      const href = element.href.replace(/\?.+$/, '');
+      const title = element.querySelector('span.title')?.textContent ?? 'Unknown';
+      const img = element.querySelector<HTMLImageElement>('div.search_capsule > img');
+      const src = img?.src;
+      const srcSet = img?.srcset;
 
-  const games = elementList.map<GameItem>((element) => {
-    const href = element.href.replace(/\?.+$/, '');
-    const title = element.querySelector('span.title')?.textContent ?? 'Unknown';
-    const img = element.querySelector<HTMLImageElement>('div.search_capsule > img');
-    const src = img?.src;
-    const srcSet = img?.srcset;
-
-    return { href, title, thumbnail: { src, srcSet } };
-  });
+      return { href, title, thumbnail: { src, srcSet } };
+    });
 
   const next: SetamSearchPrams = {
     term,
-    start: start + count,
-    count: Math.min(total_count - start - count, count),
+    start: start + games.length,
+    count: Math.min(total_count - start - games.length, count),
   };
   return {
     games,

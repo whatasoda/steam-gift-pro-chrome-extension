@@ -2,9 +2,25 @@ import React, { useMemo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { takeScreenshot } from '../screenshot';
 import { searchSteamStore } from '../search-steam-store';
+import { GameList } from './GameList';
+import { Button } from './Button';
 
 export const GiftController = ({ container, title }: GiftItem) => {
-  const [searchResult, setSearchResult] = useState<SteamSearchResult | null>(null);
+  const [list, setList] = useState<{
+    closed: boolean;
+    loading: boolean;
+    games: GameItem[];
+    nextSearchParams: SetamSearchPrams | null;
+  }>(() => ({
+    closed: true,
+    loading: false,
+    games: [],
+    nextSearchParams: {
+      term: title!,
+      start: 0,
+      count: 5,
+    },
+  }));
 
   const portalContainer = useMemo(() => document.createElement('div'), []);
   useEffect(() => {
@@ -21,55 +37,41 @@ export const GiftController = ({ container, title }: GiftItem) => {
     portalContainer.style.display = 'block';
   };
 
+  const onNextSearch = async () => {
+    if (!list.nextSearchParams) return;
+    setList((curr) => ({ ...curr, loading: true }));
+    return searchSteamStore(list.nextSearchParams).then((result) => {
+      if (!result) return;
+      setList(({ games }) => ({
+        closed: false,
+        loading: false,
+        games: [...games, ...result.games],
+        nextSearchParams: result.next,
+      }));
+    });
+  };
+
   const children = (
-    <div style={{ position: 'absolute', top: '0', left: '0', width: '170px' }}>
+    <div style={{ position: 'absolute', top: '0', left: '0', width: '190px' }}>
       <div>
-        <a
-          href="#"
-          className="btn_darkblue_white_innerfade btn_medium"
-          children={<span children="スクリーンショット" />}
-          onClick={(event) => {
-            event.preventDefault();
-            onScreenshot();
-          }}
-        />
-      </div>
-      <div style={{ marginTop: '8px' }}>
-        {searchResult ? (
-          <div style={{ height: '400px', overflow: 'auto' }}>
-            {searchResult.games.map(({ title, href, thumbnail }) => (
-              <a
-                key={href}
-                href={href}
-                target="_blank"
-                style={{
-                  display: 'block',
-                  width: '170px',
-                  color: '#c7d5e0',
-                  background: 'rgba(0,0,0,0.2)',
-                  marginBottom: '8px',
-                }}
-              >
-                <img {...thumbnail} />
-                <br />
-                {title}
-              </a>
-            ))}
-          </div>
-        ) : (
-          <a
-            href="#"
-            className="btn_darkblue_white_innerfade btn_medium"
-            children={<span children="ストアを検索" />}
-            onClick={(event) => {
-              event.preventDefault();
-              if (title) {
-                searchSteamStore({ term: title, start: 0, count: 50 }).then(setSearchResult);
-              }
-            }}
+        <Button text="スクリーンショット" onClick={onScreenshot} />
+        {list.games.length ? (
+          <Button
+            text={list.closed ? '開く' : '閉じる'}
+            onClick={() => setList((curr) => ({ ...curr, closed: !curr.closed }))}
           />
+        ) : (
+          <Button text="ストアを検索" disabled={list.loading} onClick={onNextSearch} />
         )}
       </div>
+      <GameList
+        listClosed={list.closed}
+        ended={!list.nextSearchParams}
+        games={list.games}
+        onNextSearch={onNextSearch}
+        checkExactMatch={(t) => t === title}
+      />
+      {list.loading ? 'Loading...' : null}
     </div>
   );
 

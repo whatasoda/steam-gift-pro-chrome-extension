@@ -9,7 +9,7 @@ export const Observer = () => {
   const [giftItems, setGiftItems] = useState<GiftItem[]>([]);
 
   useEffect(() => {
-    const parseGiftItem = createGiftItemParser(3, 300, (item) => {
+    const parseGiftItem = createGiftItemParser(50, 100, (item) => {
       setGiftItems((curr) => [...curr, item]);
     });
 
@@ -54,8 +54,7 @@ const createGiftItemParser = (maxRetryCount: number, timeout: number, addItem: (
 
     const title = await waitFor(maxRetryCount, timeout, () => {
       const titleElement = contentBox.querySelector(TITLE_SELECTOR);
-      if (titleElement?.textContent) return titleElement.textContent;
-      return null;
+      return titleElement?.textContent || null;
     });
 
     addItem({
