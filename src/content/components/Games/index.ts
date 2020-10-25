@@ -1,0 +1,1 @@
+export { GamesParser } from './Parser';
