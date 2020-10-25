@@ -1,11 +1,11 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { takeScreenshot } from '../screenshot';
-import { searchSteamStore } from '../search-steam-store';
+import { takeScreenshot } from '../../apis/screenshot';
+import { searchSteamStore } from '../../apis/search-steam-store';
 import { GameList } from './GameList';
-import { Button } from './Button';
+import { Button } from '../../fragments/Button';
 
-export const GiftController = ({ container, title }: GiftItem) => {
+export const Controller = ({ container, title }: GiftItem) => {
   const [list, setList] = useState<{
     closed: boolean;
     loading: boolean;

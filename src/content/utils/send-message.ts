@@ -1,5 +1,5 @@
-import type { handleBackgroundMessage } from '../background/handle-message';
-import { MessageSender } from '../utils/message';
+import type { handleBackgroundMessage } from '../../background/handle-message';
+import { MessageSender } from '../../utils/message';
 
 export const sendBackgroundMessage: MessageSender<typeof handleBackgroundMessage.handlers> = (type, ...payload) => {
   return new Promise((resolve, reject) => {

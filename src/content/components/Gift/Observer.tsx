@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { GiftController } from './GiftController';
+import { Controller } from './Controller';
 
 export const CONTENT_BOX_SELECTOR = 'div[id^="pending_gift_iteminfo_"][id$="_content"]';
 export const TITLE_SELECTOR = 'h1[id^="pending_gift_iteminfo_"][id$="_item_name"]';
 export const THUMBNAIL_SELECTOR = 'img[id^="pending_gift_iteminfo_"][id$="_item_icon"]';
 
-export const Observer = () => {
+export const GiftObserver = () => {
   const [giftItems, setGiftItems] = useState<GiftItem[]>([]);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export const Observer = () => {
   return (
     <>
       {giftItems.map((giftItem) => (
-        <GiftController key={giftItem.id} {...giftItem} />
+        <Controller key={giftItem.id} {...giftItem} />
       ))}
     </>
   );
