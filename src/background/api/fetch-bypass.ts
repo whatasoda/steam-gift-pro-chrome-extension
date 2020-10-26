@@ -22,6 +22,11 @@ export const fetchBypass = (_: any, baseUrl: typeof fetchBypassUrlList[number], 
       }
       return null;
     }
+    case 'https://store.steampowered.com/appreviewhistogram/':
+    case 'https://store.steampowered.com/apphover/': {
+      const gameId = Number(extraUrl.replace(/(?<=^\d+)[^0-9].*$/, ''));
+      return gameId === gameId ? customFetch(baseUrl + gameId) : null;
+    }
     case 'https://steamcdn-a.akamaihd.net/':
     case 'https://steamcommunity-a.akamaihd.net/': {
       if (/^((steamcommunity\/)?(public\/)?(shared\/)?(economy\/)?(images?|css))\//.test(extraUrl)) {
