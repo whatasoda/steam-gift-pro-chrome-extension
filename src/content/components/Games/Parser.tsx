@@ -9,6 +9,11 @@ export const GamesParser = () => {
   return null;
 };
 
+interface PageData {
+  personaName: string;
+  profileLink: string;
+  rgGames: RgGame[];
+}
 const leadingPartPattern = /^\n\s+(?=var rgGames = )/;
 const tailingPartPattern = /\n\s+(?=var sessionID = )/;
 const dataLinePattern = /^var ([_a-zA-Z0-9]+) = (.+);$/;
@@ -40,7 +45,7 @@ export const extractPageData = () => {
       console.log(e, value);
     }
     return acc;
-  }, {});
+  }, {}) as PageData;
 
   return pageData;
 };

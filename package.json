@@ -3,9 +3,9 @@
   "version": "1.3.0",
   "description": "A Chrome Extension that enhance thumbnails on Steam Gift Page, to add anchor link to store page",
   "scripts": {
-    "dev": "ts-node-transpile-only scripts/webpack/dev.ts",
+    "dev": "ts-node-transpile-only scripts/webpack/extension/dev.ts",
     "build": "npm run clean:before && npm run build:webpack && npm run build:copy && npm run clean:after",
-    "build:webpack": "ts-node-transpile-only scripts/webpack/prod.ts",
+    "build:webpack": "ts-node-transpile-only scripts/webpack/extension/prod.ts",
     "build:copy": "cpy package.json LICENSE dist/",
     "clean:before": "rimraf dist",
     "clean:after": "rimraf 'dist/**/*.map'",
@@ -14,9 +14,10 @@
     "setup": "git branch | grep -Eq '^\\s+archives$' && echo 'This project has already set up.' || (git checkout --orphan archives && git push -u origin archives)"
   },
   "dependencies": {
+    "@blueprintjs/core": "^3.35.0",
     "html-to-image": "^0.1.1",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
     "styled-components": "^5.2.0"
   },
   "devDependencies": {
@@ -30,7 +31,7 @@
     "@types/react-dom": "^16.9.8",
     "@types/styled-components": "^5.1.4",
     "@types/terser-webpack-plugin": "^4.1.0",
-    "@whatasoda/eslint-config": "^3.10.0",
+    "@whatasoda/eslint-config": "^3.12.0",
     "@whatasoda/tsconfig": "^1.0.3",
     "archiver": "^5.0.1",
     "cpy-cli": "^3.1.1",
@@ -43,7 +44,7 @@
     "lint-staged": "^10.3.0",
     "mkdirp": "^1.0.4",
     "node-fetch": "^2.6.1",
-    "prettier": "^2.1.1",
+    "prettier": "^2.1.2",
     "rimraf": "^3.0.2",
     "terser-webpack-plugin": "^4.1.0",
     "ts-jest": "^26.3.0",
@@ -52,7 +53,8 @@
     "typescript": "^4.0.3",
     "val-loader": "^2.1.1",
     "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "webpack-cli": "^3.3.12",
+    "webpack-merge": "^5.2.0"
   },
   "repository": {
     "type": "git",

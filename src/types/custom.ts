@@ -20,3 +20,10 @@ interface GiftItem {
   container: HTMLElement;
   contentBox: HTMLElement;
 }
+
+interface RgGame {
+  appid: number;
+  logo: string;
+  name: string;
+  availStatLinks: {} /* unnecessary  */;
+};

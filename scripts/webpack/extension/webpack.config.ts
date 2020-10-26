@@ -3,7 +3,7 @@ import path from 'path';
 import webpack, { Configuration } from 'webpack';
 import TerserPlugin from 'terser-webpack-plugin';
 import { readdirSync } from 'fs';
-import { version } from '../../package.json';
+import { version } from '../../../package.json';
 
 const printLog = (error: Error | null, stat: webpack.Stats) => {
   if (error) {
@@ -32,9 +32,9 @@ export const createCompiler = (mode: Configuration['mode']) => {
   const compiler = webpack({
     mode,
     devtool: mode !== 'production' ? 'source-map' : 'nosources-source-map',
-    entry: getEntries(path.resolve(__dirname, '../../src/entrypoints')),
+    entry: getEntries(path.resolve(__dirname, '../../../src/entrypoints')),
     output: {
-      path: path.resolve(__dirname, '../../dist'),
+      path: path.resolve(__dirname, '../../../dist'),
       filename: '[name].js',
     },
     resolve: {
