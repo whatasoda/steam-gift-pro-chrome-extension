@@ -1,5 +1,5 @@
-import { handleBackgroundMessage } from '../../../background/handle-message';
-import { SEARCH_URL } from '../../../utils/constants';
+import { handleBackgroundMessage } from '../../background/handle-message';
+import { SEARCH_URL } from '../../utils/constants';
 
 jest.mock('../utils/background-fetch', () => ({
   sendSteamSearchMessage: (gameTitle: string) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDom from 'react-dom';
-import { fetch } from '../content/utils/custom-fetch';
+import { fetch } from '../utils/custom-fetch';
 import { Router } from '../content/router';
 
 window.fetch = fetch;

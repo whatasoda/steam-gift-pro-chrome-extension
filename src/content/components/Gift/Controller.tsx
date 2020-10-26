@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { takeScreenshot } from '../../apis/screenshot';
-import { searchSteamStore } from '../../apis/search-steam-store';
+import { takeScreenshot } from '../../../apis/screenshot';
+import { searchSteamStore } from '../../../apis/search-steam-store';
 import { GameList } from './GameList';
 import { Button } from '../../fragments/Button';
 

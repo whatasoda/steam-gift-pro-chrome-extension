@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { waitFor } from '../../utils/wait';
+import { waitFor } from '../../../utils/wait';
 import { Controller } from './Controller';
 
 export const CONTENT_BOX_SELECTOR = 'div[id^="pending_gift_iteminfo_"][id$="_content"]';
