@@ -1,9 +1,9 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { takeScreenshot } from '../../apis/screenshot';
-import { searchSteamStore } from '../../apis/search-steam-store';
+import { takeScreenshot } from '../../../apis/screenshot';
+import { searchSteamStore } from '../../../apis/search-steam-store';
+import { Button } from '../../../fragments/Button';
 import { GameList } from './GameList';
-import { Button } from '../../fragments/Button';
 
 export const Controller = ({ container, title }: GiftItem) => {
   const [list, setList] = useState<{

@@ -26,4 +26,22 @@ interface RgGame {
   logo: string;
   name: string;
   availStatLinks: {} /* unnecessary  */;
-};
+}
+
+interface Histogram {
+  end_date: number;
+  start_date: number;
+  recent: ReviewPeriod[];
+  rollup_type: 'month' | 'week';
+  rollups: ReviewPeriod[];
+  weeks: never[];
+}
+interface ReviewPeriod {
+  date: number;
+  recommendations_up: number;
+  recommendations_down: number;
+}
+interface GameMetadata {
+  releaseDate: Date | null;
+  tags: string[];
+}
