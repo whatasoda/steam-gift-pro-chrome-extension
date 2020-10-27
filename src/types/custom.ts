@@ -1,3 +1,5 @@
+declare module '*.css' {}
+
 interface SteamSearchResult {
   games: GameItem[];
   next: SetamSearchPrams | null;
