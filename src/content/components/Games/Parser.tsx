@@ -1,51 +1,109 @@
-import { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Button } from '../../../fragments/Button';
+import { sendBackgroundMessage } from '../../../utils/send-message';
 
 export const GamesParser = () => {
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+  const [pageData, setPageData] = useState<PageData | null>(null);
+  const [status, setStatus] = useState<'ready' | 'processing' | 'done'>('ready');
+
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log(extractPageData());
+    const listContainer = document.querySelector('#games_list_row_container');
+    if (!listContainer) return;
+
+    const container = document.createElement('div');
+    listContainer.parentElement!.insertBefore(container, listContainer);
+    setContainer(container);
+    extractPageData().then(setPageData);
   }, []);
 
-  return null;
+  if (!container) return null;
+
+  const children = (
+    <>
+      <Button
+        text={
+          status === 'ready'
+            ? '読み込む'
+            : status === 'processing'
+            ? '追加中'
+            : status === 'done'
+            ? '読み込み済み'
+            : 'エラー'
+        }
+        disabled={status !== 'ready'}
+        onClick={() => {
+          if (pageData) {
+            const { userId, userName, profileLink, games } = pageData;
+            setStatus('processing');
+            sendBackgroundMessage('pushGameList', userId, userName, profileLink, games).finally(() => {
+              setStatus('done');
+            });
+          }
+        }}
+      />
+    </>
+  );
+
+  return createPortal(children, container);
 };
 
-interface PageData {
-  personaName: string;
-  profileLink: string;
+const MESSAGE_ID = 'SteamGiftProGameListData';
+const SteamGiftProGameListDataScript = `
+window.postMessage({
+  type: ${JSON.stringify(MESSAGE_ID)},
+  payload: { rgGames, g_steamID, profileLink, personaName },
+});
+`.trim();
+interface SteamGiftProGameListData {
   rgGames: RgGame[];
+  g_steamID: string;
+  profileLink: string;
+  personaName: string;
 }
-const leadingPartPattern = /^\n\s+(?=var rgGames = )/;
-const tailingPartPattern = /\n\s+(?=var sessionID = )/;
-const dataLinePattern = /^var ([_a-zA-Z0-9]+) = (.+);$/;
+interface RgGame {
+  appid: number;
+  logo: string;
+  name: string;
+  availStatLinks: {} /* unnecessary  */;
+}
 
-export const extractPageData = () => {
-  const candidates = Array.from(document.querySelectorAll('script[language="javascript"]'));
-  const targetTag = candidates.find((candidate) => {
-    return leadingPartPattern.test(candidate.innerHTML);
+const getRawPageData = () => {
+  return new Promise<SteamGiftProGameListData>((resolve, reject) => {
+    const onMessage = (event: MessageEvent<{ type: string; payload: SteamGiftProGameListData }>) => {
+      if (event.data.type !== MESSAGE_ID) return;
+      resolve(event.data.payload);
+      clearTimeout(timeout);
+      window.removeEventListener('message', onMessage);
+      script.remove();
+    };
+    window.addEventListener('message', onMessage);
+
+    const timeout = setTimeout(() => {
+      reject('Request Timeout');
+    }, 2000);
+
+    const script = document.createElement('script');
+    script.innerHTML = SteamGiftProGameListDataScript;
+
+    document.body.appendChild(script);
   });
+};
 
-  if (!targetTag) return null;
+export const extractPageData = async (): Promise<PageData | null> => {
+  try {
+    const { g_steamID: userId, personaName: userName, profileLink, rgGames } = await getRawPageData();
 
-  const innerHTML = targetTag.innerHTML.trimStart();
-  const { index: tailIndex = innerHTML.length } = innerHTML.match(tailingPartPattern) || { index: undefined };
-  const contents = innerHTML.slice(0, tailIndex);
-
-  const lines = contents
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => dataLinePattern.test(line));
-
-  const pageData = lines.reduce<Record<string, any>>((acc, line) => {
-    const match = line.match(dataLinePattern)!;
-    const [key, value] = match.slice(1);
-    try {
-      acc[key] = JSON.parse(value);
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log(e, value);
-    }
-    return acc;
-  }, {}) as PageData;
-
-  return pageData;
+    return {
+      userId: Number(userId),
+      userName,
+      profileLink,
+      games: rgGames.map(({ appid, logo, name }) => ({ appId: appid, logo, name })),
+    };
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log(e);
+    return null;
+  }
 };

@@ -23,11 +23,20 @@ interface GiftItem {
   contentBox: HTMLElement;
 }
 
-interface RgGame {
-  appid: number;
-  logo: string;
-  name: string;
-  availStatLinks: {} /* unnecessary  */;
+interface PageData {
+  userId: number;
+  userName: string;
+  profileLink: string;
+  games: Pick<Game, 'appId' | 'logo' | 'name'>[];
+}
+
+interface Game {
+  appId: number;
+  logo: string | null;
+  name: string | null;
+  tags: string[] | null;
+  releaseDate: Date | null;
+  histogram: Histogram | null;
 }
 
 interface Histogram {
@@ -43,7 +52,4 @@ interface ReviewPeriod {
   recommendations_up: number;
   recommendations_down: number;
 }
-interface GameMetadata {
-  releaseDate: Date | null;
-  tags: string[];
-}
+interface GameMetadata extends Pick<Game, 'name' | 'releaseDate' | 'tags'> {}
