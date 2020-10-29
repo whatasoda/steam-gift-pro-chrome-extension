@@ -2,8 +2,10 @@ const { merge } = require('webpack-merge');
 const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 
+const mode = process.env.NODE_ENV;
 module.exports = merge({
-  mode: process.env.NODE_ENV,
+  mode,
+  devtool: mode !== 'production' ? 'source-map' : 'nosources-source-map',
   entry: path.resolve(__dirname, '../../src/app/index.tsx'),
   output: {
     path: path.resolve(__dirname, '../../dist/app'),
@@ -27,6 +29,9 @@ module.exports = merge({
       {
         test: /\.css$/,
         use: [
+          {
+            loader: 'style-loader',
+          },
           {
             loader: 'css-loader',
           },
