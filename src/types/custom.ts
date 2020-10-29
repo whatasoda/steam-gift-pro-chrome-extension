@@ -1,5 +1,9 @@
 declare module '*.css' {}
 
+declare namespace React {
+  function createContext<T>(defaultValue: T, calculateChangedBits?: (prev: T, next: T) => number): React.Context<T>;
+}
+
 interface SteamSearchResult {
   games: GameItem[];
   next: SetamSearchPrams | null;
@@ -35,21 +39,18 @@ interface Game {
   logo: string | null;
   name: string | null;
   tags: string[] | null;
-  releaseDate: Date | null;
-  histogram: Histogram | null;
+  releaseDate: number | null;
+  review: ReviewHistogram | null;
 }
 
-interface Histogram {
+interface ReviewHistogram {
   end_date: number;
   start_date: number;
-  recent: ReviewPeriod[];
+  recent: RecommendationRecord[];
   rollup_type: 'month' | 'week';
-  rollups: ReviewPeriod[];
+  rollups: RecommendationRecord[];
   weeks: never[];
 }
-interface ReviewPeriod {
-  date: number;
-  recommendations_up: number;
-  recommendations_down: number;
-}
+type RecommendationRecord = [date: number, recommendations_up: number, recommendations_down: number];
+
 interface GameMetadata extends Pick<Game, 'name' | 'releaseDate' | 'tags'> {}

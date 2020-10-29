@@ -1,6 +1,6 @@
 import { DataStorageStandalone } from '@whatasoda/browser-extension-toolkit/data-storage';
 import { defaultAdopterChrome } from '@whatasoda/browser-extension-toolkit/data-storage/adopters/chrome';
-import { getGameData } from '../../apis/get-game-data';
+import { fetchGameData } from '../../apis/get-game-data';
 
 interface User {
   userId: number;
@@ -11,6 +11,10 @@ interface User {
 
 const Games = new DataStorageStandalone<Game>('games', 'v1', defaultAdopterChrome);
 const Users = new DataStorageStandalone<User>('users', 'v1', defaultAdopterChrome);
+
+export const getAllGames = async (_: any) => {
+  return await Games.query([]);
+};
 
 export const getGameListByUserId = async (_: any, userId: number) => {
   const [userEntity] = await Users.query([[{ key: 'userId', filter: userId }]]);
@@ -30,7 +34,7 @@ export const pushGameList = async (
     gameMap.set(game.appId, {
       ...game,
       tags: null,
-      histogram: null,
+      review: null,
       releaseDate: null,
     });
   });
@@ -55,12 +59,12 @@ export const pushGameList = async (
 };
 
 export const updateGameData = async (_: any, appIdList: number[]) => {
-  const games = await Games.query([[{ key: 'appid', filter: new RegExp(appIdList.join('|'), 'g') }]]);
-
-  const gameDataList = await Promise.all(games.map((game) => getGameData(game.data.appId)));
-  await games.reduce<Promise<any>>((prev, game, i) => {
-    return prev.then(() => {
-      return Games.update(game.index, { ...game.data, ...gameDataList[i] });
-    });
-  }, Promise.resolve());
+  const filter = new RegExp(`^(${appIdList.join('|')})$`);
+  const games = await Games.query([[{ key: 'appId', filter }]]);
+  const promises = games.map(async (game) => {
+    const { review, metadata } = await fetchGameData(game.data.appId);
+    const name = metadata?.name || game.data.name;
+    return Games.update(game.index, { ...game.data, review, ...metadata, name });
+  });
+  return await Promise.all(promises);
 };
