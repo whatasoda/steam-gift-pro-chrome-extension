@@ -1,32 +1,53 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { Button, Card, Colors } from '@blueprintjs/core';
 
 interface MonthPickerProps {
   className?: string;
   value?: Date;
+  defaultValue?: Date | number;
   maxYear?: number;
   minYear?: number;
   onChange?: (date: Date) => void;
 }
 
 const DEFAULT_MIN_YEAR = 2000;
-const DEFAULT_MAX_YEAR = new Date().getFullYear();
+const DEFAULT_MAX_YEAR = new Date().getFullYear() + 1;
 
 const MONTHSS = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'June', 'July.', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.'];
 
 export const MonthPicker = (props: MonthPickerProps) => {
-  const { className, value = new Date(), minYear = DEFAULT_MIN_YEAR, maxYear = DEFAULT_MAX_YEAR, onChange } = props;
-  const yearFromProps = value.getUTCFullYear();
-  const monthFromProps = value.getUTCMonth();
+  const { className, value, defaultValue, minYear = DEFAULT_MIN_YEAR, maxYear = DEFAULT_MAX_YEAR, onChange } = props;
+  const { monthFromProps, yearFromProps } = useMemo(() => {
+    return {
+      monthFromProps: props.value?.getUTCMonth(),
+      yearFromProps: props.value?.getUTCFullYear(),
+    };
+  }, [value]);
 
-  const [month, setMonth] = useState(monthFromProps);
-  const [year, setYear] = useState(yearFromProps);
-  const yearRef = useRef(yearFromProps);
+  const [month, setMonth] = useState(() => {
+    if (monthFromProps == null) {
+      const date = (typeof defaultValue === 'number' ? new Date(defaultValue) : defaultValue) || new Date();
+      return date.getUTCMonth();
+    } else {
+      return monthFromProps;
+    }
+  });
+  const [year, setYear] = useState(() => {
+    if (yearFromProps == null) {
+      const date = (typeof defaultValue === 'number' ? new Date(defaultValue) : defaultValue) || new Date();
+      return date.getUTCFullYear();
+    } else {
+      return yearFromProps;
+    }
+  });
+  const yearRef = useRef(year);
 
   useEffect(() => {
-    yearRef.current = yearFromProps;
-    if (monthFromProps !== month) {
+    if (yearFromProps != null) {
+      yearRef.current = yearFromProps;
+    }
+    if (monthFromProps != null && monthFromProps !== month) {
       setMonth(monthFromProps);
     }
   }, [yearFromProps, monthFromProps]);
@@ -42,7 +63,7 @@ export const MonthPicker = (props: MonthPickerProps) => {
   };
 
   return (
-    <StyledCard className={className}>
+    <StyledCard className={'bp3-dark' + (className ? ' ' + className : '')} elevation={2}>
       <YearContainer>
         <Button icon="chevron-left" minimal disabled={year <= minYear} onClick={() => setYear(year - 1)} />
         <span>{year}</span>

@@ -1,8 +1,6 @@
 declare module '*.css' {}
 
-declare namespace React {
-  function createContext<T>(defaultValue: T, calculateChangedBits?: (prev: T, next: T) => number): React.Context<T>;
-}
+type MinMax = [min: number, max: number];
 
 interface SteamSearchResult {
   games: GameItem[];

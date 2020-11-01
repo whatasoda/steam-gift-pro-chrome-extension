@@ -1,6 +1,6 @@
 import React from 'react';
-import { GameListTableContainer } from './containers/GameListTableContainer';
+import { GameList } from './components/GameListTable';
 
 export const App = () => {
-  return <GameListTableContainer />;
+  return <GameList />;
 };
