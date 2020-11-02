@@ -14,11 +14,9 @@ interface RangeMinMaxRecord extends Record<'up' | 'down' | 'comp', MinMax> {}
 export interface ComponentProps {
   table: TableInstance<GameFlat>;
   term: MinMax;
-  // tagListRef: MutableRefObject<string[]>;
+  tags: string[];
   minmax: RangeMinMaxRecord;
-  indexes: Record<'up' | 'down' | 'comp', number>;
-  // updateTagList: () => void;
-  // onTagFilterSet: () => void;
+  indexes: Record<'up' | 'down' | 'comp' | 'tags', number>;
   onUpdateGameData: (appId: number) => void;
   onUpdateAllGameData: () => void;
   onTermStartSet: (value: number) => void;
@@ -29,10 +27,11 @@ export const createGameListContainer = (
   columnOptions: TableOptions<GameFlat>['columns'],
   Component: (props: ComponentProps) => React.ReactElement,
 ) => {
-  const columnIndexes = {} as Record<'up' | 'down' | 'comp', number>;
+  const columnIndexes = {} as ComponentProps['indexes'];
   const columns: typeof columnOptions = columnOptions.map((column, i) => {
     switch (column.accessor) {
       case 'tags':
+        columnIndexes[column.accessor] = i;
         return { ...column, filter: 'includesAll' };
       case 'up':
       case 'down':
@@ -47,7 +46,7 @@ export const createGameListContainer = (
   return function GameListContainer() {
     const [entities, entityAction] = useGameEntities(() => table.rows.map(({ original: { appId } }) => appId));
     const { term, setTermStart: onTermStartSet, setTermEnd: onTermEndSet } = useTerm();
-    const { games: data, minmax } = useGameFlatList(entities, term);
+    const { games: data, minmax, tags } = useGameFlatList(entities, term);
 
     const table = useTable({ data, columns }, useFilters, useSortBy);
 
@@ -59,6 +58,7 @@ export const createGameListContainer = (
       <Component
         table={table}
         term={term}
+        tags={tags}
         onUpdateAllGameData={entityAction.onUpdateAllGameData}
         onUpdateGameData={entityAction.onUpdateGameData}
         onTermStartSet={onTermStartSet}

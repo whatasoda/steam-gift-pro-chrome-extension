@@ -90,8 +90,10 @@ export const useGameFlatList = (entities: Entity<Game>[], term: MinMax) => {
       down: [Infinity, 0],
       comp: [Infinity, -Infinity],
     };
+    const tagAcc = new Set<string>();
 
     const games = entities.map<GameFlat>(({ data: { review, ...dataRest }, ...entityRest }) => {
+      dataRest.tags?.forEach((tag) => tagAcc.add(tag));
       const reviews = review ? collectReviewCount(review, term) : { up: 0, down: 0, comp: 0 };
       // up
       minmax.up[0] = Math.min(minmax.up[0], reviews.up);
@@ -104,8 +106,9 @@ export const useGameFlatList = (entities: Entity<Game>[], term: MinMax) => {
       minmax.comp[1] = Math.max(minmax.comp[1], reviews.comp);
       return { ...entityRest, ...dataRest, ...reviews };
     });
+    const tags = [...tagAcc];
 
-    return { games, minmax };
+    return { games, minmax, tags };
   }, [entities, term]);
 };
 

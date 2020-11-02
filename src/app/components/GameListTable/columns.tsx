@@ -1,8 +1,9 @@
 import React from 'react';
-import styled, { css } from 'styled-components';
+import { css } from 'styled-components';
+import { Button, Icon } from '@blueprintjs/core';
 import type { TableOptions } from 'react-table';
 import type { GameFlat } from './container';
-import { Icon } from '@blueprintjs/core';
+import { Tag } from '../../../fragments/Tag';
 
 export const columns: TableOptions<GameFlat>['columns'] = [
   {
@@ -31,18 +32,6 @@ export const columns: TableOptions<GameFlat>['columns'] = [
     },
   },
   {
-    disableSortBy: true,
-    accessor: 'tags',
-    Header: 'ユーザータグ',
-    Cell: ({ cell: { value } }) => {
-      if (value) {
-        return value.map((tag, idx) => <Tag key={idx} children={tag} />);
-      } else {
-        return '[データを更新してください]';
-      }
-    },
-  },
-  {
     accessor: 'up',
     Header: () => <Icon icon="thumbs-up" />,
     Cell: ({ cell: { value } }) => value.toLocaleString(),
@@ -59,6 +48,18 @@ export const columns: TableOptions<GameFlat>['columns'] = [
     Header: () => <Icon icon="thumbs-down" />,
     Cell: ({ cell: { value } }) => (-value).toLocaleString(),
     sortType: ({ original: { down: a } }, { original: { down: b } }) => a - b,
+  },
+  {
+    disableSortBy: true,
+    accessor: 'tags',
+    Header: () => <Button fill minimal text="ユーザータグ" />,
+    Cell: ({ cell: { value: tags } }) => {
+      if (tags) {
+        return tags.map((tag, idx) => <Tag key={idx} children={tag} />);
+      } else {
+        return '[データを更新してください]';
+      }
+    },
   },
   // {
   //   accessor: 'updatedAt',
@@ -77,43 +78,39 @@ export const columns: TableOptions<GameFlat>['columns'] = [
   },
 ];
 
+const CSSIndexes = columns.reduce<Record<string, number>>((acc, { accessor, id }, idx) => {
+  acc[typeof accessor === 'string' ? accessor : id || ''] = idx + 1;
+  return acc;
+}, {}) as Record<'logo' | 'name' | 'releaseDate' | 'up' | 'comp' | 'down' | 'tags' | 'update-button', number>;
+
 export const tableCustomCSS = css`
   th {
-    &:nth-child(1) {
+    &:nth-child(${CSSIndexes.logo}) {
       width: 190px;
     }
-    &:nth-child(2) {
+    &:nth-child(${CSSIndexes.name}) {
       width: 200px;
     }
-    &:nth-child(3) {
+    &:nth-child(${CSSIndexes.releaseDate}) {
       width: 170px;
     }
-    &:nth-child(4) {
-      /* width: 400px; */
-    }
-    &:nth-child(5),
-    &:nth-child(6),
-    &:nth-child(7) {
+    &:nth-child(${CSSIndexes.up}),
+    &:nth-child(${CSSIndexes.comp}),
+    &:nth-child(${CSSIndexes.down}) {
       width: 60px;
     }
-    &:nth-child(8) {
+    &:nth-child(${CSSIndexes.tags}) {
+      /* width: 400px; */
+    }
+    &:nth-child(${CSSIndexes['update-button']}) {
       width: 100px;
     }
   }
   td {
-    &:nth-child(5),
-    &:nth-child(6),
-    &:nth-child(7) {
+    &:nth-child(${CSSIndexes.up}),
+    &:nth-child(${CSSIndexes.comp}),
+    &:nth-child(${CSSIndexes.down}) {
       text-align: right;
     }
   }
-`;
-
-const Tag = styled.span`
-  display: inline-block;
-  color: #8cd5ff;
-  background-color: #3c6686;
-  border-radius: 4px;
-  padding: 2px 4px;
-  margin: 2px;
 `;

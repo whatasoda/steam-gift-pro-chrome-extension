@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { FilterProps } from 'react-table';
+import { ColumnInstance } from 'react-table';
 
 interface FilterHelper {
   filter: Set<string>;
@@ -7,8 +7,9 @@ interface FilterHelper {
   clearFilter: () => void;
   switchSelection: (key: string, checked: boolean) => void;
 }
-export const useFilterHelper = <T extends object = {}>({ column, state }: FilterProps<T>): FilterHelper => {
+export const useFilterHelper = <T extends object = {}>(column: ColumnInstance<T>): FilterHelper => {
   const setFilter = column.setFilter as (value: string[]) => void;
+  const filterValue = column.filterValue as string[] | undefined;
 
   const [internalFilterSet, clearFilter, switchSelection] = useMemo(() => {
     const internalFilterSet = new Set<string>();
@@ -27,15 +28,14 @@ export const useFilterHelper = <T extends object = {}>({ column, state }: Filter
   }, []);
 
   const hasNoFilter = useMemo(() => {
-    const filter = state.filters.find(({ id }) => id === column.id);
     internalFilterSet.clear();
-    if (filter) {
-      (filter.value as string[]).forEach((value) => {
+    if (filterValue) {
+      filterValue.forEach((value) => {
         internalFilterSet.add(value);
       });
     }
     return !internalFilterSet.size;
-  }, [state.filters, column.id, internalFilterSet]);
+  }, [filterValue, column.id, internalFilterSet]);
 
   return {
     filter: internalFilterSet,

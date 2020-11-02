@@ -36,7 +36,7 @@ export const ReviewRangePicker = memo(({ icon, column, minmax }: ReviewRangePick
 const Wrapper = styled.div`
   vertical-align: middle;
   display: inline-block;
-  padding: 0 20px 4px 10px;
+  padding: 0 26px 4px 10px;
   align-items: center;
 `;
 

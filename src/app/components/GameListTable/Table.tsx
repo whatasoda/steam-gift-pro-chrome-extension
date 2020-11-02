@@ -3,12 +3,13 @@ import { Button, Card } from '@blueprintjs/core';
 import { ScrollableTable } from '../../../fragments/ScrollableTable';
 import { renderSortHeader } from '../../../utils/table/sort';
 import type { ComponentProps } from './container';
-import { FilterSection } from './FilterSection';
+import { ControlSection } from './ControlSection';
 import { tableCustomCSS } from './columns';
 
 export const GameListTable = ({
   table,
   term,
+  tags,
   minmax,
   indexes,
   onUpdateAllGameData,
@@ -47,20 +48,21 @@ export const GameListTable = ({
 
   return (
     <div>
-      <Button onClick={onUpdateAllGameData}>全データ更新</Button>
-      <FilterSection
-        term={term}
-        onTermStartSet={onTermStartSet}
-        onTermEndSet={onTermEndSet}
-        columns={columns}
-        indexes={indexes}
-        minmax={minmax}
-      />
       <Card elevation={2} className="bp3-dark">
+        <ControlSection
+          term={term}
+          onTermStartSet={onTermStartSet}
+          onTermEndSet={onTermEndSet}
+          onUpdateAllGameData={onUpdateAllGameData}
+          columns={columns}
+          indexes={indexes}
+          minmax={minmax}
+          tags={tags}
+        />
         <ScrollableTable
           customCSS={tableCustomCSS}
           tableProps={getTableProps({ className: 'bp3-dark' })}
-          wrapperProps={{ style: { height: '80vh' }, className: 'bp3-dark' }}
+          wrapperProps={{ style: { height: 'calc(90vh - 230px)' }, className: 'bp3-dark' }}
         >
           <thead>
             <tr>{headerContents}</tr>
