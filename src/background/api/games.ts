@@ -2,30 +2,18 @@ import { DataStorageStandalone } from '@whatasoda/browser-extension-toolkit/data
 import { defaultAdopterChrome } from '@whatasoda/browser-extension-toolkit/data-storage/adopters/chrome';
 import { fetchGameData } from '../../apis/get-game-data';
 
-interface User {
-  userId: number;
-  userName: string;
-  profileLink: string;
-  games: number[];
-}
-
 const Games = new DataStorageStandalone<Game>('games', 'v1', defaultAdopterChrome);
 const Users = new DataStorageStandalone<User>('users', 'v1', defaultAdopterChrome);
+const GameLists = new DataStorageStandalone<CustomGameList>('game-lists', 'v1', defaultAdopterChrome);
 
-export const getAllGames = async (_: any) => {
-  return await Games.query([]);
-};
+export const getAllGames = async (_: any) => await Games.query([]);
+export const getAllUsers = async (_: any) => await Users.query([]);
+export const getAllGameLists = async (_: any) => await GameLists.query([]);
 
-export const getGameListByUserId = async (_: any, userId: number) => {
-  const [userEntity] = await Users.query([[{ key: 'userId', filter: userId }]]);
-  if (!userEntity) return null;
-  return Games.query([[{ key: 'appid', filter: new RegExp(userEntity.data.games.join('|'), 'g') }]]);
-};
-
-export const pushGameList = async (
+export const pushUserGameList = async (
   _: any,
-  userId: number,
-  userName: string,
+  id: number,
+  name: string,
   profileLink: string,
   games: PageData['games'],
 ) => {
@@ -49,8 +37,14 @@ export const pushGameList = async (
     });
   }, Promise.resolve());
 
-  const [userEntity] = await Users.query([[{ key: 'userId', filter: userId }]]);
-  const user: User = { userId, userName, profileLink, games: appidList };
+  const [userEntity] = await Users.query([[{ key: 'userId', filter: id }]]);
+  const user: User = {
+    id,
+    name,
+    description: '',
+    profileLink,
+    games: appidList,
+  };
   if (userEntity) {
     await Users.update(userEntity.index, user, true);
   } else {
@@ -67,4 +61,24 @@ export const updateGameData = async (_: any, appIdList: number[]) => {
     return Games.update(game.index, { ...game.data, review, ...metadata, name });
   });
   return await Promise.all(promises);
+};
+
+export const createGameList = async (_: any, gameList: CustomGameList) => {
+  try {
+    return await GameLists.create(gameList);
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log(e);
+    return null;
+  }
+};
+
+export const updateGameList = async (_: any, index: string, gameList: CustomGameList) => {
+  try {
+    return await GameLists.update(index, gameList);
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log(e);
+    return null;
+  }
 };

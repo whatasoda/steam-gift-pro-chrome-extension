@@ -6,6 +6,7 @@ import { MonthPicker } from '../../../fragments/MonthPicker';
 import { ReviewRangePicker } from './ReviewRangePicker';
 import { TagPicker } from './TagPicker';
 import { Button } from '@blueprintjs/core';
+import { GameListFilter } from './GameListFilter';
 
 type Base = Pick<
   ComponentProps,
@@ -26,6 +27,7 @@ export const ControlSection = ({
   tags,
 }: ControlSectionProps) => (
   <Wrapper>
+    <GameListFilter column={columns[indexes.appId]} />
     <ButtonWrapper>
       <Button onClick={onUpdateAllGameData} fill text="全データ更新" />
     </ButtonWrapper>

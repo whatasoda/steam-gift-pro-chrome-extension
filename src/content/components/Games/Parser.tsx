@@ -37,7 +37,7 @@ export const GamesParser = () => {
           if (pageData) {
             const { userId, userName, profileLink, games } = pageData;
             setStatus('processing');
-            sendBackgroundMessage('pushGameList', userId, userName, profileLink, games).finally(() => {
+            sendBackgroundMessage('pushUserGameList', userId, userName, profileLink, games).finally(() => {
               setStatus('done');
             });
           }

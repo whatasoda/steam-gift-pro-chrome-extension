@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { TableInstance, TableOptions, useFilters, useSortBy, useTable } from 'react-table';
 import type { Entity } from '@whatasoda/browser-extension-toolkit/data-storage';
-import { useGameEntities, useGameFlatList, useTerm } from './utils';
+import { gameListFilter, useGameEntities, useGameFlatList, useTerm } from './utils';
 
 export interface GameFlat extends Omit<Entity<any>, 'data'>, Omit<Game, 'review'> {
   up: number;
@@ -16,7 +16,7 @@ export interface ComponentProps {
   term: MinMax;
   tags: string[];
   minmax: RangeMinMaxRecord;
-  indexes: Record<'up' | 'down' | 'comp' | 'tags', number>;
+  indexes: Record<'up' | 'down' | 'comp' | 'tags' | 'appId', number>;
   onUpdateGameData: (appId: number) => void;
   onUpdateAllGameData: () => void;
   onTermStartSet: (value: number) => void;
@@ -30,6 +30,9 @@ export const createGameListContainer = (
   const columnIndexes = {} as ComponentProps['indexes'];
   const columns: typeof columnOptions = columnOptions.map((column, i) => {
     switch (column.accessor) {
+      case 'appId':
+        columnIndexes[column.accessor] = i;
+        return { ...column, filter: gameListFilter };
       case 'tags':
         columnIndexes[column.accessor] = i;
         return { ...column, filter: 'includesAll' };

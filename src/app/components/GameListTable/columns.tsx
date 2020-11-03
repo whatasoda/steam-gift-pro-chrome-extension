@@ -8,10 +8,10 @@ import { Tag } from '../../../fragments/Tag';
 export const columns: TableOptions<GameFlat>['columns'] = [
   {
     disableSortBy: true,
-    accessor: 'logo',
-    Cell: ({ cell: { value }, row: { original } }) => (
-      <a target="_blank" href={`https://store.steampowered.com/app/${original.appId}`}>
-        {value ? <img src={value} /> : <span children="No Image" />}
+    accessor: 'appId',
+    Cell: ({ cell: { value: appId }, row: { original } }) => (
+      <a target="_blank" href={`https://store.steampowered.com/app/${appId}`}>
+        {original.logo ? <img src={original.logo} /> : <span children="No Image" />}
       </a>
     ),
   },
@@ -61,17 +61,6 @@ export const columns: TableOptions<GameFlat>['columns'] = [
       }
     },
   },
-  // {
-  //   accessor: 'updatedAt',
-  //   Header: '情報更新',
-  //   Cell: ({ cell: { value } }) => {
-  //     if (value) {
-  //       return new Date(value).toLocaleString();
-  //     } else {
-  //       return '-';
-  //     }
-  //   },
-  // },
   {
     disableSortBy: true,
     id: 'update-button',
@@ -81,11 +70,11 @@ export const columns: TableOptions<GameFlat>['columns'] = [
 const CSSIndexes = columns.reduce<Record<string, number>>((acc, { accessor, id }, idx) => {
   acc[typeof accessor === 'string' ? accessor : id || ''] = idx + 1;
   return acc;
-}, {}) as Record<'logo' | 'name' | 'releaseDate' | 'up' | 'comp' | 'down' | 'tags' | 'update-button', number>;
+}, {}) as Record<'appId' | 'name' | 'releaseDate' | 'up' | 'comp' | 'down' | 'tags' | 'update-button', number>;
 
 export const tableCustomCSS = css`
   th {
-    &:nth-child(${CSSIndexes.logo}) {
+    &:nth-child(${CSSIndexes.appId}) {
       width: 190px;
     }
     &:nth-child(${CSSIndexes.name}) {

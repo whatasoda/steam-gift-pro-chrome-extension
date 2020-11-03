@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Entity } from '@whatasoda/browser-extension-toolkit/data-storage';
 import type { GameFlat } from './container';
 import { sendBackgroundMessage } from '../../../utils/send-message';
-import { ColumnInstance } from 'react-table';
+import { ColumnInstance, FilterType } from 'react-table';
 import { debounce } from '../../../utils/debounce';
 
 export const useGameEntities = (getVisibleItemIds: () => number[]) => {
@@ -128,4 +128,98 @@ export const collectReviewCount = (review: ReviewHistogram, [start, end]: MinMax
     comp += u - d;
   }
   return { up, down, comp };
+};
+
+interface GameListFilterValue {
+  includes: number[];
+  excludes: number[];
+}
+export const gameListFilter: FilterType<GameFlat> = (rows, _: any, filterValue: GameListFilterValue) => {
+  return rows.filter(({ original: { appId } }) => {
+    return filterValue.includes.includes(appId) && !filterValue.excludes.includes(appId);
+  });
+};
+gameListFilter.autoRemove = (filterValue: GameListFilterValue | null) => {
+  return !filterValue || (filterValue.excludes.length === 0 && filterValue.includes.length === 0);
+};
+
+type GameListRecord = Partial<Record<string, Entity<CustomGameList>>>;
+type UserRecord = Partial<Record<string, Entity<User>>>;
+export const useGameListFilter = (column: ColumnInstance<GameFlat>) => {
+  const filterValue = column.filterValue as GameListFilterValue | null;
+  const setFilterValue = column.setFilter as (next: GameListFilterValue | null) => void;
+  const [gameLists, setGameLists] = useState<GameListRecord>({});
+  const [users, setUsers] = useState<UserRecord>({});
+  const [includes, setIncludes] = useFilterState('includes', setFilterValue, filterValue, { gameLists, users });
+  const [excludes, setExcludes] = useFilterState('excludes', setFilterValue, filterValue, { gameLists, users });
+
+  const fetchGameList = async () => {
+    const [gameLists, users] = await Promise.all([
+      sendBackgroundMessage('getAllGameLists').then((entities) => {
+        return entities.reduce<GameListRecord>((acc, entity) => ((acc[entity.index] = entity), acc), {});
+      }),
+      sendBackgroundMessage('getAllUsers').then((entities) => {
+        return entities.reduce<UserRecord>((acc, entity) => ((acc[entity.index] = entity), acc), {});
+      }),
+    ]);
+    setGameLists(gameLists);
+    setUsers(users);
+  };
+
+  const clearFilter = (kind: keyof GameListFilterValue | 'all') => {
+    switch (kind) {
+      case 'all':
+        return setFilterValue(null);
+      case 'includes':
+        return setFilterValue({ excludes: [], ...filterValue, includes: [] });
+      case 'excludes':
+        return setFilterValue({ includes: [], ...filterValue, excludes: [] });
+    }
+  };
+
+  const addFilter = (kind: keyof GameListFilterValue, index: string) => {
+    const { value, setValue } = {
+      includes: { value: includes, setValue: setIncludes },
+      excludes: { value: excludes, setValue: setExcludes },
+    }[kind];
+    if (value.includes(index)) return;
+    setValue([...value, index]);
+  };
+
+  const removeFilter = (kind: keyof GameListFilterValue, index: string) => {
+    const { value, setValue } = {
+      includes: { value: includes, setValue: setIncludes },
+      excludes: { value: excludes, setValue: setExcludes },
+    }[kind];
+    const idx = value.indexOf(index);
+    if (idx === -1) return;
+    setValue([...value.slice(0, idx), ...value.slice(idx + 1)]);
+  };
+
+  return { fetchGameList, includes, excludes, gameLists, users, addFilter, removeFilter, clearFilter };
+};
+const useFilterState = (
+  kind: keyof GameListFilterValue,
+  setFilterValue: (next: GameListFilterValue | null) => void,
+  filterValue: GameListFilterValue | null,
+  deps: { gameLists: GameListRecord; users: UserRecord },
+) => {
+  const state = useState<string[]>([]);
+  const [filter] = state;
+  const { gameLists, users } = deps;
+  useEffect(() => {
+    const appIds = new Set<number>();
+    filter.forEach((index) => {
+      const entity = gameLists[index] || users[index] || null;
+      entity?.data.games.forEach((appId) => appIds.add(appId));
+    });
+    setFilterValue({
+      excludes: [],
+      includes: [],
+      ...filterValue,
+      [kind]: [...appIds],
+    });
+  }, [gameLists, users, filter]);
+
+  return state;
 };

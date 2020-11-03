@@ -33,14 +33,13 @@ declare global {
   }
 
   interface CustomGameList {
-    id: number;
     name: string;
     description: string;
     games: number[];
-    comments: Record<number, string>;
   }
 
   interface User extends CustomGameList {
+    id: number;
     profileLink: string;
   }
 
