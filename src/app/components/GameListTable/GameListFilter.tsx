@@ -1,20 +1,15 @@
-import React, { useEffect, useMemo } from 'react';
-import { ColumnInstance } from 'react-table';
+import React, { memo, useMemo } from 'react';
 import { useGameListFilter } from './utils';
-import type { GameFlat } from './container';
 import { HTMLSelect, IOptionProps, TagInput } from '@blueprintjs/core';
 import styled from 'styled-components';
 
 interface GameListFilterProps {
   className?: string;
-  column: ColumnInstance<GameFlat>;
+  controller: ReturnType<typeof useGameListFilter>;
 }
 
-export const GameListFilter = ({ column }: GameListFilterProps) => {
-  const { fetchGameList, users, gameLists, includes, excludes, addFilter, removeFilter } = useGameListFilter(column);
-  useEffect(() => {
-    fetchGameList();
-  }, []);
+export const GameListFilter = memo(({ controller }: GameListFilterProps) => {
+  const { users, gameLists, includes, excludes, addFilter, removeFilter } = controller;
 
   const { options, labels } = useMemo(() => {
     const options: IOptionProps[] = [{ value: '', label: '選択してください', disabled: true }];
@@ -27,7 +22,7 @@ export const GameListFilter = ({ column }: GameListFilterProps) => {
       if (!entity) return;
       const isUser = idx < userList.length;
       const { index } = entity;
-      const label = `${isUser ? 'USER' : 'LIST'}: ${users[index]!.data.name}`;
+      const label = `${isUser ? 'USER' : 'LIST'}: ${entity.data.name}`;
       if (includes.includes(index)) {
         labels.includes.push(<span key={index} children={label} />);
       } else if (excludes.includes(index)) {
@@ -76,7 +71,7 @@ export const GameListFilter = ({ column }: GameListFilterProps) => {
       </SectionWrapper>
     </div>
   );
-};
+});
 
 const SectionWrapper = styled.div`
   display: flex;
@@ -84,7 +79,6 @@ const SectionWrapper = styled.div`
   margin-bottom: 6px;
   align-items: center;
 `;
-
 const StyledSelect = styled(HTMLSelect)`
   width: 150px;
 `;

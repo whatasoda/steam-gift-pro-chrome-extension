@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Entity } from '@whatasoda/browser-extension-toolkit/data-storage';
 import type { GameFlat } from './container';
 import { sendBackgroundMessage } from '../../../utils/send-message';
 import { ColumnInstance, FilterType } from 'react-table';
 import { debounce } from '../../../utils/debounce';
 
-export const useGameEntities = (getVisibleItemIds: () => number[]) => {
+export const useGameEntities = (getShownItemIds: () => number[]) => {
   const [entities, setEntities] = useState<Entity<Game>[]>([]);
 
   const onUpdateAllGameData = async () => {
-    await sendBackgroundMessage('updateGameData', getVisibleItemIds());
+    await sendBackgroundMessage('updateGameData', getShownItemIds());
     await refreshItems();
   };
 
@@ -143,8 +143,12 @@ gameListFilter.autoRemove = (filterValue: GameListFilterValue | null) => {
   return !filterValue || (filterValue.excludes.length === 0 && filterValue.includes.length === 0);
 };
 
-type GameListRecord = Partial<Record<string, Entity<CustomGameList>>>;
-type UserRecord = Partial<Record<string, Entity<User>>>;
+export interface GameListRecord {
+  [index: string]: Entity<CustomGameList> | undefined;
+}
+export interface UserRecord {
+  [index: string]: Entity<User> | undefined;
+}
 export const useGameListFilter = (column: ColumnInstance<GameFlat>) => {
   const filterValue = column.filterValue as GameListFilterValue | null;
   const setFilterValue = column.setFilter as (next: GameListFilterValue | null) => void;
@@ -222,4 +226,107 @@ const useFilterState = (
   }, [gameLists, users, filter]);
 
   return state;
+};
+
+export const useGameListEdit = (
+  getVisibleItemIds: () => number[],
+  refreshGameList: () => Promise<void>,
+  gameLists: GameListRecord,
+) => {
+  const [editTarget, setEditTarget] = useState<string | null>(null);
+  const [draft, setDraft] = useState<CustomGameList | null>(null);
+  const hasUnsavedChange = useRef(false);
+  const games = useRef(new Set<number>());
+
+  useEffect(() => {
+    resetDraft();
+  }, [editTarget]);
+
+  const resetDraft = () => {
+    if (editTarget && gameLists[editTarget]) {
+      const next = gameLists[editTarget]!;
+      games.current = new Set(next.data.games);
+      setDraft({ ...next.data, games: [...games.current] });
+    } else {
+      setDraft(null);
+      setEditTarget(null);
+    }
+    hasUnsavedChange.current = false;
+  };
+
+  const setName = (name: string) => {
+    if (!draft) return;
+    hasUnsavedChange.current = true;
+    setDraft({ ...draft, name });
+  };
+
+  const setDescription = (description: string) => {
+    if (!draft) return;
+    hasUnsavedChange.current = true;
+    setDraft({ ...draft, description });
+  };
+
+  const addShownGames = () => addGames(...getVisibleItemIds());
+  const addGames = (...appIds: number[]) => {
+    if (!draft) return;
+    let hasUpdated = false;
+    appIds.forEach((appId) => {
+      if (games.current.has(appId)) return;
+      hasUpdated = true;
+      games.current.add(appId);
+    });
+    if (!hasUpdated) return;
+    hasUnsavedChange.current = true;
+    setDraft({ ...draft, games: [...games.current] });
+  };
+
+  const removeShownGames = () => addGames(...getVisibleItemIds());
+  const removeGames = (...appIds: number[]) => {
+    if (!draft) return;
+    let hasUpdated = false;
+    appIds.forEach((appId) => {
+      if (!games.current.has(appId)) return;
+      hasUpdated = true;
+      games.current.delete(appId);
+    });
+    if (!hasUpdated) return;
+    hasUnsavedChange.current = true;
+    setDraft({ ...draft, games: [...games.current] });
+  };
+
+  const saveChanges = async () => {
+    if (!editTarget || !draft) return;
+    try {
+      sendBackgroundMessage('updateGameList', editTarget, draft);
+      await refreshGameList();
+      hasUnsavedChange.current = false;
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log('something wrong happened');
+    }
+  };
+
+  const createGameList = async (name: string) => {
+    const res = await sendBackgroundMessage('createGameList', { name, description: '', games: [] });
+    if (res) {
+      await refreshGameList();
+      setEditTarget(res.index);
+    }
+  };
+
+  return {
+    selectedGames: games.current,
+    hasUnsavedChange: hasUnsavedChange.current,
+    draft,
+    setEditTarget,
+    resetDraft,
+    setName,
+    setDescription,
+    addGames,
+    addShownGames,
+    removeGames,
+    removeShownGames,
+    saveChanges,
+    createGameList,
+  };
 };

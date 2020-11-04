@@ -1,5 +1,5 @@
 import { columns } from './columns';
 import { createGameListContainer } from './container';
-import { GameListTable } from './table';
+import { Layout } from './Layout';
 
-export const GameList = createGameListContainer(columns, GameListTable);
+export const GameList = createGameListContainer(columns, Layout);

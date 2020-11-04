@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { TableInstance, TableOptions, useFilters, useSortBy, useTable } from 'react-table';
 import type { Entity } from '@whatasoda/browser-extension-toolkit/data-storage';
-import { gameListFilter, useGameEntities, useGameFlatList, useTerm } from './utils';
+import { gameListFilter, useGameEntities, useGameFlatList, useGameListEdit, useGameListFilter, useTerm } from './utils';
 
 export interface GameFlat extends Omit<Entity<any>, 'data'>, Omit<Game, 'review'> {
   up: number;
@@ -9,66 +9,85 @@ export interface GameFlat extends Omit<Entity<any>, 'data'>, Omit<Game, 'review'
   comp: number;
 }
 
-interface RangeMinMaxRecord extends Record<'up' | 'down' | 'comp', MinMax> {}
-
-export interface ComponentProps {
+interface TableLayerPayload {
+  getShownAppIds: () => number[];
   table: TableInstance<GameFlat>;
-  term: MinMax;
-  tags: string[];
-  minmax: RangeMinMaxRecord;
+  termController: ReturnType<typeof useTerm>;
+  gameListInfo: ReturnType<typeof useGameFlatList>;
+  entityActions: ReturnType<typeof useGameEntities>[1];
+}
+
+export interface ComponentProps extends TableLayerPayload {
   indexes: Record<'up' | 'down' | 'comp' | 'tags' | 'appId', number>;
-  onUpdateGameData: (appId: number) => void;
-  onUpdateAllGameData: () => void;
-  onTermStartSet: (value: number) => void;
-  onTermEndSet: (value: number) => void;
+  gameListFilterController: ReturnType<typeof useGameListFilter>;
+  gameListEditController: ReturnType<typeof useGameListEdit>;
 }
 
 export const createGameListContainer = (
   columnOptions: TableOptions<GameFlat>['columns'],
   Component: (props: ComponentProps) => React.ReactElement,
 ) => {
-  const columnIndexes = {} as ComponentProps['indexes'];
+  const indexes = {} as ComponentProps['indexes'];
   const columns: typeof columnOptions = columnOptions.map((column, i) => {
     switch (column.accessor) {
       case 'appId':
-        columnIndexes[column.accessor] = i;
+        indexes[column.accessor] = i;
         return { ...column, filter: gameListFilter };
       case 'tags':
-        columnIndexes[column.accessor] = i;
+        indexes[column.accessor] = i;
         return { ...column, filter: 'includesAll' };
       case 'up':
       case 'down':
       case 'comp':
-        columnIndexes[column.accessor] = i;
+        indexes[column.accessor] = i;
         return { ...column, filter: 'between' };
       default:
         return column;
     }
   });
 
-  return function GameListContainer() {
-    const [entities, entityAction] = useGameEntities(() => table.rows.map(({ original: { appId } }) => appId));
-    const { term, setTermStart: onTermStartSet, setTermEnd: onTermEndSet } = useTerm();
-    const { games: data, minmax, tags } = useGameFlatList(entities, term);
+  const TableLayer = () => {
+    const getShownAppIds = () => table.rows.map(({ original: { appId } }) => appId);
+    const [entities, entityActions] = useGameEntities(getShownAppIds);
+    const termController = useTerm();
+    const gameListInfo = useGameFlatList(entities, termController.term);
 
+    const { games: data } = gameListInfo;
     const table = useTable({ data, columns }, useFilters, useSortBy);
+    useEffect(() => {
+      entityActions.refreshItems();
+    }, []);
+
+    return (
+      <FilterLayer
+        table={table}
+        getShownAppIds={getShownAppIds}
+        gameListInfo={gameListInfo}
+        termController={termController}
+        entityActions={entityActions}
+      />
+    );
+  };
+
+  const FilterLayer = (props: TableLayerPayload) => {
+    const { table, getShownAppIds } = props;
+    const gameListFilterController = useGameListFilter(table.columns[indexes.appId]);
+    const { fetchGameList, gameLists } = gameListFilterController;
+    const gameListEditController = useGameListEdit(getShownAppIds, fetchGameList, gameLists);
 
     useEffect(() => {
-      entityAction.refreshItems();
+      gameListFilterController.fetchGameList();
     }, []);
 
     return (
       <Component
-        table={table}
-        term={term}
-        tags={tags}
-        onUpdateAllGameData={entityAction.onUpdateAllGameData}
-        onUpdateGameData={entityAction.onUpdateGameData}
-        onTermStartSet={onTermStartSet}
-        onTermEndSet={onTermEndSet}
-        indexes={columnIndexes}
-        minmax={minmax}
+        {...props}
+        indexes={indexes}
+        gameListFilterController={gameListFilterController}
+        gameListEditController={gameListEditController}
       />
     );
   };
+
+  return TableLayer;
 };

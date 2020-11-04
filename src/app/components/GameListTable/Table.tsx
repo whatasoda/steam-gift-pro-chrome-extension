@@ -1,23 +1,16 @@
 import React from 'react';
-import { Button, Card } from '@blueprintjs/core';
+import { Cell } from 'react-table';
+import { Button, Checkbox } from '@blueprintjs/core';
 import { ScrollableTable } from '../../../fragments/ScrollableTable';
 import { renderSortHeader } from '../../../utils/table/sort';
-import type { ComponentProps } from './container';
-import { ControlSection } from './ControlSection';
+import type { ComponentProps, GameFlat } from './container';
 import { tableCustomCSS } from './columns';
 
-export const GameListTable = ({
-  table,
-  term,
-  tags,
-  minmax,
-  indexes,
-  onUpdateAllGameData,
-  onUpdateGameData,
-  onTermStartSet,
-  onTermEndSet,
-}: ComponentProps) => {
-  const { headers, getTableProps, getTableBodyProps, prepareRow, rows, columns } = table;
+type TableProps = Pick<ComponentProps, 'table' | 'entityActions' | 'gameListEditController'>;
+
+export const Table = (props: TableProps) => {
+  const { table } = props;
+  const { headers, getTableProps, getTableBodyProps, prepareRow, rows } = table;
 
   const headerContents = headers.map((column) => {
     const { disableSortBy, getHeaderProps, render } = column;
@@ -29,47 +22,45 @@ export const GameListTable = ({
     prepareRow(row);
     return (
       <tr {...row.getRowProps()}>
-        {row.cells.map((cell) => {
-          switch (cell.column.id) {
-            case 'update-button':
-              return (
-                <td
-                  {...cell.getCellProps()}
-                  children={<Button onClick={() => onUpdateGameData(cell.row.original.appId)}>情報更新</Button>}
-                />
-              );
-            default:
-              return <td {...cell.getCellProps()} children={cell.render('Cell')} />;
-          }
-        })}
+        {row.cells.map((cell) => (
+          <td {...cell.getCellProps()} children={renderCell(cell, props)} />
+        ))}
       </tr>
     );
   });
 
   return (
-    <div>
-      <Card elevation={2} className="bp3-dark">
-        <ControlSection
-          term={term}
-          onTermStartSet={onTermStartSet}
-          onTermEndSet={onTermEndSet}
-          onUpdateAllGameData={onUpdateAllGameData}
-          columns={columns}
-          indexes={indexes}
-          minmax={minmax}
-          tags={tags}
-        />
-        <ScrollableTable
-          customCSS={tableCustomCSS}
-          tableProps={getTableProps({ className: 'bp3-dark' })}
-          wrapperProps={{ style: { height: 'calc(90vh - 230px)' }, className: 'bp3-dark' }}
-        >
-          <thead>
-            <tr>{headerContents}</tr>
-          </thead>
-          <tbody {...getTableBodyProps()}>{bodyContents}</tbody>
-        </ScrollableTable>
-      </Card>
-    </div>
+    <ScrollableTable
+      customCSS={tableCustomCSS}
+      tableProps={getTableProps({ className: 'bp3-dark' })}
+      wrapperProps={{ style: { height: 'calc(90vh - 230px)' }, className: 'bp3-dark' }}
+    >
+      <thead>
+        <tr>{headerContents}</tr>
+      </thead>
+      <tbody {...getTableBodyProps()}>{bodyContents}</tbody>
+    </ScrollableTable>
   );
+};
+
+const renderCell = (cell: Cell<GameFlat>, { entityActions, gameListEditController }: TableProps) => {
+  const { appId } = cell.row.original;
+  switch (cell.column.id) {
+    case 'checkbox': {
+      const { draft, selectedGames, addGames, removeGames } = gameListEditController;
+      return (
+        <Checkbox
+          disabled={!draft}
+          checked={draft ? selectedGames.has(appId) : false}
+          onClick={(event) => (event.currentTarget.checked ? addGames(appId) : removeGames(appId))}
+        />
+      );
+    }
+    case 'update-button': {
+      const { onUpdateGameData } = entityActions;
+      return <Button text="情報更新" onClick={() => onUpdateGameData(appId)} />;
+    }
+    default:
+      return cell.render('Cell');
+  }
 };

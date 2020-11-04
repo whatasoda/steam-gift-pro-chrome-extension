@@ -8,6 +8,10 @@ import { Tag } from '../../../fragments/Tag';
 export const columns: TableOptions<GameFlat>['columns'] = [
   {
     disableSortBy: true,
+    id: 'checkbox',
+  },
+  {
+    disableSortBy: true,
     accessor: 'appId',
     Cell: ({ cell: { value: appId }, row: { original } }) => (
       <a target="_blank" href={`https://store.steampowered.com/app/${appId}`}>
