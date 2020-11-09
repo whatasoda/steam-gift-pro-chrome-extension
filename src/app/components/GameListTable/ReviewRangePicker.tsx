@@ -1,46 +1,22 @@
-import { Button, RangeSlider, IconName } from '@blueprintjs/core';
-import React, { memo } from 'react';
-import { ColumnInstance } from 'react-table';
-import styled from 'styled-components';
-import { useBetweenFilter } from './utils';
+import { Button, Popover } from '@blueprintjs/core';
+import React from 'react';
+import { BetweenFilterPicker } from '../../../fragments/BetweenFilterPicker';
+import type { ComponentProps } from './container';
 
-interface ReviewRangePickerProps {
-  className?: string;
-  icon: IconName;
-  column: ColumnInstance<any>;
-  minmax: MinMax;
-}
+interface ReviewRangePickerProps extends Pick<ComponentProps, 'table' | 'indexes' | 'gameListInfo'> {}
 
-const floatFormat = /(?<=\.\d{2})\d+$/;
-
-export const ReviewRangePicker = memo(({ icon, column, minmax }: ReviewRangePickerProps) => {
-  const { propotion, setRange, clearRange } = useBetweenFilter(column, minmax);
-
-  return (
-    <Wrapper>
-      <Button icon={icon} fill onClick={clearRange} />
-      <StyledRangeSlider
-        value={propotion}
-        onChange={setRange}
-        min={0}
-        max={1}
-        vertical
-        stepSize={0.005}
-        labelStepSize={0.25}
-        labelRenderer={(value) => `${(value * 100).toString().replace(floatFormat, '')}%`}
-      />
-    </Wrapper>
+export const ReviewRangePicker = ({
+  table: { columns },
+  indexes,
+  gameListInfo: { minmax },
+}: ReviewRangePickerProps) => {
+  const popover = (
+    <>
+      <BetweenFilterPicker icon="thumbs-up" column={columns[indexes.up]} minmax={minmax.up} />
+      <BetweenFilterPicker icon="flow-review" column={columns[indexes.comp]} minmax={minmax.comp} />
+      <BetweenFilterPicker icon="thumbs-down" column={columns[indexes.down]} minmax={minmax.down} />
+    </>
   );
-});
 
-const Wrapper = styled.div`
-  vertical-align: middle;
-  display: inline-block;
-  padding: 0 26px 4px 10px;
-  align-items: center;
-`;
-
-const StyledRangeSlider = styled(RangeSlider)`
-  height: 150px;
-  margin: 16px 0px 8px 24px;
-`;
+  return <Popover content={popover} children={<Button text="レビューの範囲を指定" />} />;
+};

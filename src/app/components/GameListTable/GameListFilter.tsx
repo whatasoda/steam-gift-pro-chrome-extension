@@ -15,7 +15,7 @@ export const GameListFilter = memo(({ table, indexes, gameLists, users }: GameLi
   });
 
   const { options, labels } = useMemo(() => {
-    const options: IOptionProps[] = [{ value: '', label: '選択してください', disabled: true }];
+    const options: IOptionProps[] = [{ value: '', label: '+', disabled: true }];
     const userList = Object.values(users);
     const gameListList = Object.values(gameLists);
 
@@ -40,12 +40,7 @@ export const GameListFilter = memo(({ table, indexes, gameLists, users }: GameLi
 
   return (
     <div>
-      <SectionWrapper>
-        <StyledSelect
-          value=""
-          options={options}
-          onChange={(event) => addFilter('includes', event.currentTarget.value)}
-        />
+      <Wrapper>
         <StyledTagInput
           values={labels.includes}
           inputProps={{ style: { cursor: 'default' }, onFocus: (event) => event.currentTarget.blur() }}
@@ -54,14 +49,12 @@ export const GameListFilter = memo(({ table, indexes, gameLists, users }: GameLi
             if (typeof key === 'string') removeFilter('includes', key);
           }}
         />
-        <Suffix>に含まれるアイテムを表示中</Suffix>
-      </SectionWrapper>
-      <SectionWrapper>
         <StyledSelect
           value=""
           options={options}
-          onChange={(event) => addFilter('excludes', event.currentTarget.value)}
+          onChange={(event) => addFilter('includes', event.currentTarget.value)}
         />
+        <Suffix>に含まれ、かつ</Suffix>
         <StyledTagInput
           values={labels.excludes}
           inputProps={{ style: { cursor: 'default' }, onFocus: (event) => event.currentTarget.blur() }}
@@ -70,25 +63,33 @@ export const GameListFilter = memo(({ table, indexes, gameLists, users }: GameLi
             if (typeof key === 'string') removeFilter('excludes', key);
           }}
         />
+        <StyledSelect
+          value=""
+          options={options}
+          onChange={(event) => addFilter('excludes', event.currentTarget.value)}
+        />
         <Suffix>に含まれないアイテムを表示中</Suffix>
-      </SectionWrapper>
+      </Wrapper>
     </div>
   );
 });
 
-const SectionWrapper = styled.div`
+const Wrapper = styled.div`
   display: flex;
-  flex-wrap: none;
+  flex-wrap: wrap;
+  margin-left: 6px;
   margin-bottom: 6px;
   align-items: center;
-`;
-const StyledSelect = styled(HTMLSelect)`
-  width: 150px;
-`;
-const StyledTagInput = styled(TagInput)`
-  margin: 0 6px;
   width: 300px;
 `;
+const StyledSelect = styled(HTMLSelect)`
+  width: 50px;
+`;
+const StyledTagInput = styled(TagInput)`
+  width: 250px;
+`;
 const Suffix = styled.div`
-  vertical-align: middle;
+  text-align: right;
+  margin: 6px 0;
+  width: 100%;
 `;

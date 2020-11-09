@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Card, Checkbox, Popover, InputGroup, Callout } from '@blueprintjs/core';
+import { Button, Checkbox, Popover, InputGroup, Callout } from '@blueprintjs/core';
 import { Tag } from '../../../fragments/Tag';
 import styled from 'styled-components';
 import { useFilterHelper } from '../../../utils/table/filter';
@@ -16,7 +16,7 @@ export const TagPicker = ({ className, tags, column }: TagPickerProps) => {
   const [searchText, setSearchText] = useState('');
 
   const popover = (
-    <Card className={className}>
+    <PopoverWrapepr>
       <InputGroup
         value={searchText}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchText(event.currentTarget.value)}
@@ -37,7 +37,7 @@ export const TagPicker = ({ className, tags, column }: TagPickerProps) => {
           return acc;
         }, [])}
       </ScrollContainer>
-    </Card>
+    </PopoverWrapepr>
   );
 
   return (
@@ -53,6 +53,10 @@ export const TagPicker = ({ className, tags, column }: TagPickerProps) => {
     </StyledCallout>
   );
 };
+
+const PopoverWrapepr = styled.div`
+  padding: 8px;
+`;
 
 const ScrollContainer = styled.div`
   overflow-y: scroll;

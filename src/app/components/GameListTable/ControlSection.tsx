@@ -1,13 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Button } from '@blueprintjs/core';
+import { Button, ButtonGroup } from '@blueprintjs/core';
 import type { ComponentProps } from './container';
+import type { ControllerRefs } from './Layout';
 import { TagPicker } from './TagPicker';
 import { GameListFilter } from './GameListFilter';
-import { ReviewRangePicker } from './ReviewRangePicker';
 import { GameListEditor } from './GameListEditor';
 import { ReviewTermPicker } from './ReviewTermPicker';
-import { ControllerRefs } from './Layout';
+import { ReviewRangePicker } from './ReviewRangePicker';
 
 interface ControlSectionProps extends ComponentProps {
   setControllers: (next: (curr: ControllerRefs) => ControllerRefs) => void;
@@ -25,10 +25,15 @@ export const ControlSection = ({
   setControllers,
 }: ControlSectionProps) => {
   const { onUpdateAllGameData } = entityActions;
-  const { minmax, tags } = gameListInfo;
+  const { tags } = gameListInfo;
   const { columns } = table;
   return (
     <Wrapper>
+      <ButtonWrapper vertical>
+        <Button onClick={onUpdateAllGameData} fill text="全データ更新" />
+        <ReviewTermPicker controller={termController} />
+        <ReviewRangePicker table={table} indexes={indexes} gameListInfo={gameListInfo} />
+      </ButtonWrapper>
       <GameListEditor
         getShownAppIds={getShownAppIds}
         entityActions={entityActions}
@@ -36,13 +41,6 @@ export const ControlSection = ({
         onControllerInit={(controller) => setControllers((curr) => ({ ...curr, gameListEditor: controller }))}
       />
       <GameListFilter table={table} indexes={indexes} gameLists={gameLists} users={users} />
-      <ButtonWrapper>
-        <Button onClick={onUpdateAllGameData} fill text="全データ更新" />
-        <ReviewTermPicker controller={termController} />
-      </ButtonWrapper>
-      <ReviewRangePicker icon="thumbs-up" column={columns[indexes.up]} minmax={minmax.up} />
-      <ReviewRangePicker icon="flow-review" column={columns[indexes.comp]} minmax={minmax.comp} />
-      <ReviewRangePicker icon="thumbs-down" column={columns[indexes.down]} minmax={minmax.down} />
       <StyledTagPicker tags={tags} column={columns[indexes.tags]} />
     </Wrapper>
   );
@@ -50,22 +48,18 @@ export const ControlSection = ({
 
 const Wrapper = styled.div`
   height: 230px;
+  display: flex;
 `;
 
-const ButtonWrapper = styled.div`
-  display: inline-block;
-  vertical-align: middle;
-  width: 150px;
+const ButtonWrapper = styled(ButtonGroup)`
+  width: 200px;
   margin-right: 10px;
-  height: 100%;
-  padding-top: 44px;
-  box-sizing: border-box;
+  flex: 0 0 auto;
 `;
 
 const StyledTagPicker = styled(TagPicker)`
-  display: inline-block;
   vertical-align: middle;
   margin-left: 10px;
   width: 500px;
-  height: 226px;
+  height: 150px;
 `;

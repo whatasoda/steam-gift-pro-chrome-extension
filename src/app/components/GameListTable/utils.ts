@@ -3,7 +3,6 @@ import type { Entity } from '@whatasoda/browser-extension-toolkit/data-storage';
 import type { GameFlat } from './container';
 import { sendBackgroundMessage } from '../../../utils/send-message';
 import { ColumnInstance, FilterType } from 'react-table';
-import { debounce } from '../../../utils/debounce';
 
 export interface GameListRecord {
   [index: string]: Entity<CustomGameList> | undefined;
@@ -75,35 +74,6 @@ export const useTerm = () => {
   const term = useMemo<MinMax>(() => [start, end], [start, end]);
 
   return { term, setTermStart, setTermEnd };
-};
-
-export const useBetweenFilter = <T extends object = {}>(column: ColumnInstance<T>, minmax: MinMax) => {
-  const [propotion, setPropotion] = useState<MinMax>([0.0, 1.0]);
-  const [setFilter, setFilterRef] = useMemo(() => {
-    const ref = { current: column.setFilter as (value: MinMax | null) => void };
-    const func = debounce((value: MinMax | null) => ref.current(value), 200);
-    return [func, ref] as const;
-  }, []);
-  setFilterRef.current = column.setFilter;
-
-  useEffect(() => {
-    setPropotion([0.0, 1.0]);
-    setFilter(null);
-  }, minmax);
-
-  const setRange = (next: MinMax) => {
-    setPropotion(next);
-    const [min, max] = minmax;
-    const range = max - min;
-    setFilter([min + range * next[0], min + range * next[1]]);
-  };
-
-  const clearRange = () => {
-    setPropotion([0, 1.0]);
-    setFilter(null);
-  };
-
-  return { propotion, setRange, clearRange };
 };
 
 export const useGameFlatList = (entities: Entity<Game>[], term: MinMax) => {
@@ -324,6 +294,7 @@ export const useGameListEdit = (
     selectedGames: games.current,
     hasUnsavedChange: hasUnsavedChange.current,
     draft,
+    editTarget,
     setEditTarget,
     resetDraft,
     setName,
