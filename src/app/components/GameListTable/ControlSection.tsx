@@ -1,53 +1,45 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Button } from '@blueprintjs/core';
-import { MonthPicker } from '../../../fragments/MonthPicker';
+import type { ComponentProps } from './container';
 import { TagPicker } from './TagPicker';
 import { GameListFilter } from './GameListFilter';
 import { ReviewRangePicker } from './ReviewRangePicker';
-import type { ComponentProps } from './container';
 import { GameListEditor } from './GameListEditor';
+import { ReviewTermPicker } from './ReviewTermPicker';
+import { ControllerRefs } from './Layout';
 
-type ControlSectionProps = Pick<
-  ComponentProps,
-  | 'table'
-  | 'gameListInfo'
-  | 'entityActions'
-  | 'indexes'
-  | 'termController'
-  | 'gameListFilterController'
-  | 'gameListEditController'
->;
+interface ControlSectionProps extends ComponentProps {
+  setControllers: (next: (curr: ControllerRefs) => ControllerRefs) => void;
+}
 
 export const ControlSection = ({
+  getShownAppIds,
   table,
+  gameLists,
+  users,
   indexes,
   gameListInfo,
   entityActions,
   termController,
-  gameListEditController,
-  gameListFilterController,
+  setControllers,
 }: ControlSectionProps) => {
-  const { term, setTermStart, setTermEnd } = termController;
   const { onUpdateAllGameData } = entityActions;
   const { minmax, tags } = gameListInfo;
-  const [start, end] = term;
   const { columns } = table;
   return (
     <Wrapper>
-      <GameListEditor gameLists={gameListFilterController.gameLists} controller={gameListEditController} />
-      <GameListFilter controller={gameListFilterController} />
+      <GameListEditor
+        getShownAppIds={getShownAppIds}
+        entityActions={entityActions}
+        gameLists={gameLists}
+        onControllerInit={(controller) => setControllers((curr) => ({ ...curr, gameListEditor: controller }))}
+      />
+      <GameListFilter table={table} indexes={indexes} gameLists={gameLists} users={users} />
       <ButtonWrapper>
         <Button onClick={onUpdateAllGameData} fill text="全データ更新" />
+        <ReviewTermPicker controller={termController} />
       </ButtonWrapper>
-      <MonthPickerWrapper>
-        <span>レビュー集計開始月</span>
-        <StyledMonthPicker defaultValue={start} onChange={(date) => setTermStart(date.getTime())} />
-      </MonthPickerWrapper>
-      <MonthPickerWrapper>
-        <span>レビュー集計終了月</span>
-        <StyledMonthPicker defaultValue={end} onChange={(date) => setTermEnd(date.getTime())} />
-      </MonthPickerWrapper>
       <ReviewRangePicker icon="thumbs-up" column={columns[indexes.up]} minmax={minmax.up} />
       <ReviewRangePicker icon="flow-review" column={columns[indexes.comp]} minmax={minmax.comp} />
       <ReviewRangePicker icon="thumbs-down" column={columns[indexes.down]} minmax={minmax.down} />
@@ -68,17 +60,6 @@ const ButtonWrapper = styled.div`
   height: 100%;
   padding-top: 44px;
   box-sizing: border-box;
-`;
-
-const StyledMonthPicker = styled(MonthPicker)`
-  margin-top: 8px;
-`;
-
-const MonthPickerWrapper = styled.div`
-  display: inline-block;
-  vertical-align: middle;
-  margin-right: 8px;
-  text-align: center;
 `;
 
 const StyledTagPicker = styled(TagPicker)`

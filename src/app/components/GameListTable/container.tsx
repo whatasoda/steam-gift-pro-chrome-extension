@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { TableInstance, TableOptions, useFilters, useSortBy, useTable } from 'react-table';
 import type { Entity } from '@whatasoda/browser-extension-toolkit/data-storage';
-import { gameListFilter, useGameEntities, useGameFlatList, useGameListEdit, useGameListFilter, useTerm } from './utils';
+import { gameListFilter, GameListRecord, useEntities, useGameFlatList, UserRecord, useTerm } from './utils';
 
 export interface GameFlat extends Omit<Entity<any>, 'data'>, Omit<Game, 'review'> {
   up: number;
@@ -9,18 +9,15 @@ export interface GameFlat extends Omit<Entity<any>, 'data'>, Omit<Game, 'review'
   comp: number;
 }
 
-interface TableLayerPayload {
+export interface ComponentProps {
   getShownAppIds: () => number[];
   table: TableInstance<GameFlat>;
+  indexes: Record<'up' | 'down' | 'comp' | 'tags' | 'appId', number>;
+  gameLists: GameListRecord;
+  users: UserRecord;
   termController: ReturnType<typeof useTerm>;
   gameListInfo: ReturnType<typeof useGameFlatList>;
-  entityActions: ReturnType<typeof useGameEntities>[1];
-}
-
-export interface ComponentProps extends TableLayerPayload {
-  indexes: Record<'up' | 'down' | 'comp' | 'tags' | 'appId', number>;
-  gameListFilterController: ReturnType<typeof useGameListFilter>;
-  gameListEditController: ReturnType<typeof useGameListEdit>;
+  entityActions: ReturnType<typeof useEntities>[1];
 }
 
 export const createGameListContainer = (
@@ -48,43 +45,28 @@ export const createGameListContainer = (
 
   const TableLayer = () => {
     const getShownAppIds = () => table.rows.map(({ original: { appId } }) => appId);
-    const [entities, entityActions] = useGameEntities(getShownAppIds);
+    const [entities, entityActions] = useEntities(getShownAppIds);
     const termController = useTerm();
-    const gameListInfo = useGameFlatList(entities, termController.term);
+    const gameListInfo = useGameFlatList(entities.games, termController.term);
 
     const { games: data } = gameListInfo;
     const table = useTable({ data, columns }, useFilters, useSortBy);
     useEffect(() => {
-      entityActions.refreshItems();
-    }, []);
-
-    return (
-      <FilterLayer
-        table={table}
-        getShownAppIds={getShownAppIds}
-        gameListInfo={gameListInfo}
-        termController={termController}
-        entityActions={entityActions}
-      />
-    );
-  };
-
-  const FilterLayer = (props: TableLayerPayload) => {
-    const { table, getShownAppIds } = props;
-    const gameListFilterController = useGameListFilter(table.columns[indexes.appId]);
-    const { fetchGameList, gameLists } = gameListFilterController;
-    const gameListEditController = useGameListEdit(getShownAppIds, fetchGameList, gameLists);
-
-    useEffect(() => {
-      gameListFilterController.fetchGameList();
+      entityActions.fetchGames();
+      entityActions.fetchGameLists();
+      entityActions.fetchUsers();
     }, []);
 
     return (
       <Component
-        {...props}
+        table={table}
         indexes={indexes}
-        gameListFilterController={gameListFilterController}
-        gameListEditController={gameListEditController}
+        gameLists={entities.gameLists}
+        users={entities.users}
+        getShownAppIds={getShownAppIds}
+        gameListInfo={gameListInfo}
+        termController={termController}
+        entityActions={entityActions}
       />
     );
   };

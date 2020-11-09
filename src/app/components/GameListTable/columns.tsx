@@ -29,7 +29,11 @@ export const columns: TableOptions<GameFlat>['columns'] = [
     Header: 'リリース日',
     Cell: ({ cell: { value } }) => {
       if (value) {
-        return new Date(value).toLocaleString();
+        const date = new Date(value);
+        const yyyy = date.getFullYear();
+        const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+        const dd = date.getDate().toString().padStart(2, '0');
+        return `${yyyy}年${mm}月${dd}日`;
       } else {
         return '[データを更新してください]';
       }
@@ -85,7 +89,7 @@ export const tableCustomCSS = css`
       width: 200px;
     }
     &:nth-child(${CSSIndexes.releaseDate}) {
-      width: 170px;
+      width: 140px;
     }
     &:nth-child(${CSSIndexes.up}),
     &:nth-child(${CSSIndexes.comp}),
@@ -100,6 +104,9 @@ export const tableCustomCSS = css`
     }
   }
   td {
+    &:nth-child(${CSSIndexes.releaseDate}) {
+      text-align: center;
+    }
     &:nth-child(${CSSIndexes.up}),
     &:nth-child(${CSSIndexes.comp}),
     &:nth-child(${CSSIndexes.down}) {

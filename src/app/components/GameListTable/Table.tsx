@@ -4,9 +4,12 @@ import { Button, Checkbox } from '@blueprintjs/core';
 import { ScrollableTable } from '../../../fragments/ScrollableTable';
 import { renderSortHeader } from '../../../utils/table/sort';
 import type { ComponentProps, GameFlat } from './container';
+import type { ControllerRefs } from './Layout';
 import { tableCustomCSS } from './columns';
 
-type TableProps = Pick<ComponentProps, 'table' | 'entityActions' | 'gameListEditController'>;
+interface TableProps extends Pick<ComponentProps, 'table' | 'entityActions'> {
+  controllerRefs: ControllerRefs;
+}
 
 export const Table = (props: TableProps) => {
   const { table } = props;
@@ -43,11 +46,12 @@ export const Table = (props: TableProps) => {
   );
 };
 
-const renderCell = (cell: Cell<GameFlat>, { entityActions, gameListEditController }: TableProps) => {
+const renderCell = (cell: Cell<GameFlat>, { entityActions, controllerRefs }: TableProps) => {
   const { appId } = cell.row.original;
   switch (cell.column.id) {
     case 'checkbox': {
-      const { draft, selectedGames, addGames, removeGames } = gameListEditController;
+      if (!controllerRefs.gameListEditor) return <Checkbox disabled />;
+      const { draft, selectedGames, addGames, removeGames } = controllerRefs.gameListEditor.current;
       return (
         <Checkbox
           disabled={!draft}

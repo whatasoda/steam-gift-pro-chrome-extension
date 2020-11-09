@@ -1,14 +1,26 @@
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Button, EditableText, HTMLSelect, IOptionProps, TextArea } from '@blueprintjs/core';
-import React, { useMemo } from 'react';
-import { GameListRecord, useGameListEdit } from './utils';
+import type { ComponentProps } from './container';
+import { useGameListEdit } from './utils';
 
-interface GameListEditorProps {
-  controller: ReturnType<typeof useGameListEdit>;
-  gameLists: GameListRecord;
+interface GameListEditorProps extends Pick<ComponentProps, 'getShownAppIds' | 'entityActions' | 'gameLists'> {
+  onControllerInit: (controller: { current: ReturnType<typeof useGameListEdit> }) => void;
 }
 
-export const GameListEditor = ({ controller, gameLists }: GameListEditorProps) => {
-  const { draft, saveChanges, createGameList, setEditTarget } = controller;
+export const GameListEditor = ({
+  getShownAppIds,
+  entityActions: { fetchGameLists },
+  onControllerInit,
+  gameLists,
+}: GameListEditorProps) => {
+  const controller = useGameListEdit(getShownAppIds, fetchGameLists, gameLists);
+  const controllerRef = useRef(controller);
+  controllerRef.current = controller;
+  const { draft, saveChanges, createGameList, setEditTarget, setName, setDescription } = controller;
+  useEffect(() => {
+    onControllerInit(controllerRef);
+  }, []);
+
   const options = useMemo<IOptionProps[]>(() => {
     return [
       { value: '', label: '編集するゲームリストを選択してください' },
@@ -28,11 +40,11 @@ export const GameListEditor = ({ controller, gameLists }: GameListEditorProps) =
       />
       {draft ? (
         <div>
-          <EditableText key={draft.name} defaultValue={draft.name} onConfirm={controller.setName} />
+          <EditableText key={draft.name} defaultValue={draft.name} onConfirm={setName} />
           <TextArea
             key={draft.description}
             defaultValue={draft.description}
-            onBlur={(event) => controller.setDescription(event.currentTarget.value)}
+            onBlur={(event) => setDescription(event.currentTarget.value)}
           />
           <Button text="保存" onClick={() => saveChanges()} />
         </div>

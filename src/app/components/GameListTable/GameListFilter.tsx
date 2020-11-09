@@ -1,15 +1,18 @@
 import React, { memo, useMemo } from 'react';
-import { useGameListFilter } from './utils';
-import { HTMLSelect, IOptionProps, TagInput } from '@blueprintjs/core';
 import styled from 'styled-components';
+import { HTMLSelect, IOptionProps, TagInput } from '@blueprintjs/core';
+import { useGameListFilter } from './utils';
+import type { ComponentProps } from './container';
 
-interface GameListFilterProps {
+interface GameListFilterProps extends Pick<ComponentProps, 'table' | 'indexes' | 'gameLists' | 'users'> {
   className?: string;
-  controller: ReturnType<typeof useGameListFilter>;
 }
 
-export const GameListFilter = memo(({ controller }: GameListFilterProps) => {
-  const { users, gameLists, includes, excludes, addFilter, removeFilter } = controller;
+export const GameListFilter = memo(({ table, indexes, gameLists, users }: GameListFilterProps) => {
+  const { includes, excludes, addFilter, removeFilter } = useGameListFilter(table.columns[indexes.appId], {
+    gameLists,
+    users,
+  });
 
   const { options, labels } = useMemo(() => {
     const options: IOptionProps[] = [{ value: '', label: '選択してください', disabled: true }];

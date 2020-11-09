@@ -5,19 +5,43 @@ import { sendBackgroundMessage } from '../../../utils/send-message';
 import { ColumnInstance, FilterType } from 'react-table';
 import { debounce } from '../../../utils/debounce';
 
-export const useGameEntities = (getShownItemIds: () => number[]) => {
-  const [entities, setEntities] = useState<Entity<Game>[]>([]);
+export interface GameListRecord {
+  [index: string]: Entity<CustomGameList> | undefined;
+}
+export interface UserRecord {
+  [index: string]: Entity<User> | undefined;
+}
+export const useEntities = (getShownItemIds: () => number[]) => {
+  const [games, setEntities] = useState<Entity<Game>[]>([]);
+  const [gameLists, setGameLists] = useState<GameListRecord>({});
+  const [users, setUsers] = useState<UserRecord>({});
+
+  const fetchGames = async () => {
+    setEntities(await sendBackgroundMessage('getAllGames'));
+  };
+
+  const fetchUsers = async () => {
+    const entities = await sendBackgroundMessage('getAllUsers');
+    const record = entities.reduce<UserRecord>((acc, entity) => ((acc[entity.index] = entity), acc), {});
+    setUsers(record);
+  };
+
+  const fetchGameLists = async () => {
+    const entities = await sendBackgroundMessage('getAllGameLists');
+    const record = entities.reduce<GameListRecord>((acc, entity) => ((acc[entity.index] = entity), acc), {});
+    setGameLists(record);
+  };
 
   const onUpdateAllGameData = async () => {
     await sendBackgroundMessage('updateGameData', getShownItemIds());
-    await refreshItems();
+    await fetchGames();
   };
 
   const onUpdateGameData = async (appId: number) => {
     const promise = sendBackgroundMessage('updateGameData', [appId]);
     const index = await new Promise<number>((resolve) => {
       setTimeout(() => {
-        resolve(entities.findIndex((entity) => entity.data.appId === appId));
+        resolve(games.findIndex((entity) => entity.data.appId === appId));
       }, 0);
     });
 
@@ -32,11 +56,10 @@ export const useGameEntities = (getShownItemIds: () => number[]) => {
     });
   };
 
-  const refreshItems = async () => {
-    setEntities(await sendBackgroundMessage('getAllGames'));
-  };
-
-  return [entities, { onUpdateAllGameData, onUpdateGameData, refreshItems }] as const;
+  return [
+    { games, gameLists, users },
+    { onUpdateAllGameData, onUpdateGameData, fetchGames, fetchUsers, fetchGameLists },
+  ] as const;
 };
 
 const defaultStart = 946684800000; // 2000/01/01;
@@ -143,32 +166,15 @@ gameListFilter.autoRemove = (filterValue: GameListFilterValue | null) => {
   return !filterValue || (filterValue.excludes.length === 0 && filterValue.includes.length === 0);
 };
 
-export interface GameListRecord {
-  [index: string]: Entity<CustomGameList> | undefined;
+interface UseGameListFilter {
+  gameLists: GameListRecord;
+  users: UserRecord;
 }
-export interface UserRecord {
-  [index: string]: Entity<User> | undefined;
-}
-export const useGameListFilter = (column: ColumnInstance<GameFlat>) => {
+export const useGameListFilter = (column: ColumnInstance<GameFlat>, deps: UseGameListFilter) => {
   const filterValue = column.filterValue as GameListFilterValue | null;
   const setFilterValue = column.setFilter as (next: GameListFilterValue | null) => void;
-  const [gameLists, setGameLists] = useState<GameListRecord>({});
-  const [users, setUsers] = useState<UserRecord>({});
-  const [includes, setIncludes] = useFilterState('includes', setFilterValue, filterValue, { gameLists, users });
-  const [excludes, setExcludes] = useFilterState('excludes', setFilterValue, filterValue, { gameLists, users });
-
-  const fetchGameList = async () => {
-    const [gameLists, users] = await Promise.all([
-      sendBackgroundMessage('getAllGameLists').then((entities) => {
-        return entities.reduce<GameListRecord>((acc, entity) => ((acc[entity.index] = entity), acc), {});
-      }),
-      sendBackgroundMessage('getAllUsers').then((entities) => {
-        return entities.reduce<UserRecord>((acc, entity) => ((acc[entity.index] = entity), acc), {});
-      }),
-    ]);
-    setGameLists(gameLists);
-    setUsers(users);
-  };
+  const [includes, setIncludes] = useFilterState('includes', setFilterValue, filterValue, deps);
+  const [excludes, setExcludes] = useFilterState('excludes', setFilterValue, filterValue, deps);
 
   const clearFilter = (kind: keyof GameListFilterValue | 'all') => {
     switch (kind) {
@@ -200,13 +206,13 @@ export const useGameListFilter = (column: ColumnInstance<GameFlat>) => {
     setValue([...value.slice(0, idx), ...value.slice(idx + 1)]);
   };
 
-  return { fetchGameList, includes, excludes, gameLists, users, addFilter, removeFilter, clearFilter };
+  return { includes, excludes, addFilter, removeFilter, clearFilter };
 };
 const useFilterState = (
   kind: keyof GameListFilterValue,
   setFilterValue: (next: GameListFilterValue | null) => void,
   filterValue: GameListFilterValue | null,
-  deps: { gameLists: GameListRecord; users: UserRecord },
+  deps: UseGameListFilter,
 ) => {
   const state = useState<string[]>([]);
   const [filter] = state;
