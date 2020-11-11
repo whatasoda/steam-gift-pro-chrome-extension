@@ -38,7 +38,7 @@
     "@types/terser-webpack-plugin": "^4.1.0",
     "@types/webpack": "^4.41.23",
     "@whatasoda/browser-extension-toolkit": "^1.1.4",
-    "@whatasoda/eslint-config": "^3.12.0",
+    "@whatasoda/eslint-config": "^3.9.6",
     "@whatasoda/tsconfig": "^1.0.3",
     "archiver": "^5.0.1",
     "concurrently": "^5.3.0",
