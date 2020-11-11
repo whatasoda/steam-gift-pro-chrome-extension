@@ -12,11 +12,12 @@ interface TagPickerProps {
 }
 
 export const TagPicker = ({ className, tags, column }: TagPickerProps) => {
-  const { switchSelection, filter } = useFilterHelper(column);
+  const { switchSelection, filter, clearFilter } = useFilterHelper(column);
   const [searchText, setSearchText] = useState('');
 
   const popover = (
     <PopoverWrapepr>
+      <Button icon="filter-remove" text="フィルターをリセット" fill disabled={!filter.size} onClick={clearFilter} />
       <InputGroup
         value={searchText}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchText(event.currentTarget.value)}

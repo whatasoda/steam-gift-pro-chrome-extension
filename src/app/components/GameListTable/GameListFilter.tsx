@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import styled from 'styled-components';
-import { HTMLSelect, IOptionProps, TagInput } from '@blueprintjs/core';
+import { Button, Menu, Popover, TagInput } from '@blueprintjs/core';
 import { useGameListFilter } from './utils';
 import type { ComponentProps } from './container';
 
@@ -14,8 +14,9 @@ export const GameListFilter = memo(({ table, indexes, gameLists, users }: GameLi
     users,
   });
 
-  const { options, labels } = useMemo(() => {
-    const options: IOptionProps[] = [{ value: '', label: '+', disabled: true }];
+  const { menuItemsIncludes, menuItemsExcludes, labels } = useMemo(() => {
+    const menuItemsIncludes: JSX.Element[] = [];
+    const menuItemsExcludes: JSX.Element[] = [];
     const userList = Object.values(users);
     const gameListList = Object.values(gameLists);
 
@@ -31,65 +32,69 @@ export const GameListFilter = memo(({ table, indexes, gameLists, users }: GameLi
       } else if (excludes.includes(index)) {
         labels.excludes.push(<span key={index} children={label} />);
       } else {
-        options.push({ value: index, label });
+        menuItemsIncludes.push(<Menu.Item key={index} text={label} onClick={() => addFilter('includes', index)} />);
+        menuItemsExcludes.push(<Menu.Item key={index} text={label} onClick={() => addFilter('excludes', index)} />);
       }
     });
 
-    return { options, labels };
+    return { menuItemsIncludes, menuItemsExcludes, labels };
   }, [includes, excludes, users, gameLists]);
 
   return (
-    <div>
-      <Wrapper>
-        <StyledTagInput
-          values={labels.includes}
-          inputProps={{ style: { cursor: 'default' }, onFocus: (event) => event.currentTarget.blur() }}
-          onRemove={(item) => {
-            const { key } = item as JSX.Element;
-            if (typeof key === 'string') removeFilter('includes', key);
-          }}
-        />
-        <StyledSelect
-          value=""
-          options={options}
-          onChange={(event) => addFilter('includes', event.currentTarget.value)}
-        />
-        <Suffix>に含まれ、かつ</Suffix>
-        <StyledTagInput
-          values={labels.excludes}
-          inputProps={{ style: { cursor: 'default' }, onFocus: (event) => event.currentTarget.blur() }}
-          onRemove={(item) => {
-            const { key } = item as JSX.Element;
-            if (typeof key === 'string') removeFilter('excludes', key);
-          }}
-        />
-        <StyledSelect
-          value=""
-          options={options}
-          onChange={(event) => addFilter('excludes', event.currentTarget.value)}
-        />
-        <Suffix>に含まれないアイテムを表示中</Suffix>
-      </Wrapper>
-    </div>
+    <Popover
+      position="right"
+      content={
+        <Wrapper>
+          <StyledTagInput
+            values={labels.includes}
+            inputProps={{ style: { cursor: 'default' }, onFocus: (event) => event.currentTarget.blur() }}
+            onRemove={(item) => {
+              const { key } = item as JSX.Element;
+              if (typeof key === 'string') removeFilter('includes', key);
+            }}
+            rightElement={
+              <Popover
+                captureDismiss
+                content={<Menu children={menuItemsIncludes} />}
+                children={<Button icon="add" minimal />}
+              />
+            }
+          />
+          <Text>に含まれ、かつ</Text>
+          <StyledTagInput
+            values={labels.excludes}
+            inputProps={{ style: { cursor: 'default' }, onFocus: (event) => event.currentTarget.blur() }}
+            onRemove={(item) => {
+              const { key } = item as JSX.Element;
+              if (typeof key === 'string') removeFilter('excludes', key);
+            }}
+            rightElement={
+              <Popover
+                captureDismiss
+                content={<Menu children={menuItemsExcludes} />}
+                children={<Button icon="add" minimal />}
+              />
+            }
+          />
+          <Text>に含まれないゲームを表示</Text>
+        </Wrapper>
+      }
+      children={
+        <Button icon={includes.length || excludes.length ? 'filter-keep' : 'filter'} text="ゲームリストで絞り込み" />
+      }
+    />
   );
 });
 
 const Wrapper = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  margin-left: 6px;
-  margin-bottom: 6px;
-  align-items: center;
-  width: 300px;
-`;
-const StyledSelect = styled(HTMLSelect)`
-  width: 50px;
+  padding: 6px;
 `;
 const StyledTagInput = styled(TagInput)`
-  width: 250px;
+  flex: 0 0 auto;
+  width: 320px;
 `;
-const Suffix = styled.div`
+const Text = styled.div`
+  flex: 0 0 auto;
+  margin: 6px;
   text-align: right;
-  margin: 6px 0;
-  width: 100%;
 `;

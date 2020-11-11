@@ -100,7 +100,7 @@ export const tableCustomCSS = css`
       /* width: 400px; */
     }
     &:nth-child(${CSSIndexes['update-button']}) {
-      width: 100px;
+      width: 30px;
     }
   }
   td {

@@ -1,7 +1,15 @@
 import React, { useEffect } from 'react';
 import { TableInstance, TableOptions, useFilters, useSortBy, useTable } from 'react-table';
 import type { Entity } from '@whatasoda/browser-extension-toolkit/data-storage';
-import { gameListFilter, GameListRecord, useEntities, useGameFlatList, UserRecord, useTerm } from './utils';
+import {
+  gameListFilter,
+  GameListRecord,
+  useEntities,
+  useGameFlatList,
+  useGameListEdit,
+  UserRecord,
+  useTerm,
+} from './utils';
 
 export interface GameFlat extends Omit<Entity<any>, 'data'>, Omit<Game, 'review'> {
   up: number;
@@ -16,7 +24,8 @@ export interface ComponentProps {
   gameLists: GameListRecord;
   users: UserRecord;
   termController: ReturnType<typeof useTerm>;
-  gameListInfo: ReturnType<typeof useGameFlatList>;
+  gameListEditController: ReturnType<typeof useGameListEdit>;
+  info: ReturnType<typeof useGameFlatList>;
   entityActions: ReturnType<typeof useEntities>[1];
 }
 
@@ -47,25 +56,27 @@ export const createGameListContainer = (
     const getShownAppIds = () => table.rows.map(({ original: { appId } }) => appId);
     const [entities, entityActions] = useEntities(getShownAppIds);
     const termController = useTerm();
-    const gameListInfo = useGameFlatList(entities.games, termController.term);
+    const info = useGameFlatList(entities.games, termController.term);
 
-    const { games: data } = gameListInfo;
+    const { games: data } = info;
     const table = useTable({ data, columns }, useFilters, useSortBy);
     useEffect(() => {
       entityActions.fetchGames();
       entityActions.fetchGameLists();
       entityActions.fetchUsers();
     }, []);
+    const gameListEditController = useGameListEdit(getShownAppIds, entityActions.fetchGameLists, entities.gameLists);
 
     return (
       <Component
+        info={info}
         table={table}
         indexes={indexes}
         gameLists={entities.gameLists}
         users={entities.users}
         getShownAppIds={getShownAppIds}
-        gameListInfo={gameListInfo}
         termController={termController}
+        gameListEditController={gameListEditController}
         entityActions={entityActions}
       />
     );

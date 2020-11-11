@@ -4,12 +4,9 @@ import { Button, Checkbox } from '@blueprintjs/core';
 import { ScrollableTable } from '../../../fragments/ScrollableTable';
 import { renderSortHeader } from '../../../utils/table/sort';
 import type { ComponentProps, GameFlat } from './container';
-import type { ControllerRefs } from './Layout';
 import { tableCustomCSS } from './columns';
 
-interface TableProps extends Pick<ComponentProps, 'table' | 'entityActions'> {
-  controllerRefs: ControllerRefs;
-}
+interface TableProps extends Pick<ComponentProps, 'table' | 'entityActions' | 'gameListEditController'> {}
 
 export const Table = (props: TableProps) => {
   const { table } = props;
@@ -36,7 +33,7 @@ export const Table = (props: TableProps) => {
     <ScrollableTable
       customCSS={tableCustomCSS}
       tableProps={getTableProps({ className: 'bp3-dark' })}
-      wrapperProps={{ style: { height: 'calc(90vh - 230px)' }, className: 'bp3-dark' }}
+      wrapperProps={{ style: { height: 'calc(90vh - 120px)' }, className: 'bp3-dark' }}
     >
       <thead>
         <tr>{headerContents}</tr>
@@ -46,12 +43,11 @@ export const Table = (props: TableProps) => {
   );
 };
 
-const renderCell = (cell: Cell<GameFlat>, { entityActions, controllerRefs }: TableProps) => {
+const renderCell = (cell: Cell<GameFlat>, { entityActions, gameListEditController }: TableProps) => {
   const { appId } = cell.row.original;
   switch (cell.column.id) {
     case 'checkbox': {
-      if (!controllerRefs.gameListEditor) return <Checkbox disabled />;
-      const { draft, selectedGames, addGames, removeGames } = controllerRefs.gameListEditor.current;
+      const { draft, selectedGames, addGames, removeGames } = gameListEditController;
       return (
         <Checkbox
           disabled={!draft}
@@ -62,7 +58,7 @@ const renderCell = (cell: Cell<GameFlat>, { entityActions, controllerRefs }: Tab
     }
     case 'update-button': {
       const { onUpdateGameData } = entityActions;
-      return <Button text="情報更新" onClick={() => onUpdateGameData(appId)} />;
+      return <Button icon="refresh" title="ゲームの情報を更新" onClick={() => onUpdateGameData(appId)} />;
     }
     default:
       return cell.render('Cell');

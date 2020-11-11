@@ -231,13 +231,13 @@ export const useGameListEdit = (
   };
 
   const setName = (name: string) => {
-    if (!draft) return;
+    if (!draft || draft.name === name) return;
     hasUnsavedChange.current = true;
     setDraft({ ...draft, name });
   };
 
   const setDescription = (description: string) => {
-    if (!draft) return;
+    if (!draft || draft.description === description) return;
     hasUnsavedChange.current = true;
     setDraft({ ...draft, description });
   };
@@ -256,7 +256,7 @@ export const useGameListEdit = (
     setDraft({ ...draft, games: [...games.current] });
   };
 
-  const removeShownGames = () => addGames(...getVisibleItemIds());
+  const removeShownGames = () => removeGames(...getVisibleItemIds());
   const removeGames = (...appIds: number[]) => {
     if (!draft) return;
     let hasUpdated = false;
@@ -273,9 +273,9 @@ export const useGameListEdit = (
   const saveChanges = async () => {
     if (!editTarget || !draft) return;
     try {
-      sendBackgroundMessage('updateGameList', editTarget, draft);
-      await refreshGameList();
+      await sendBackgroundMessage('updateGameList', editTarget, draft);
       hasUnsavedChange.current = false;
+      await refreshGameList();
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log('something wrong happened');

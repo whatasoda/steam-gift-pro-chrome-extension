@@ -15,26 +15,34 @@ export const ReviewTermPicker = ({ controller }: ReviewTermPickerProps) => {
     setTermEnd,
   } = controller;
 
-  const content = (
-    <>
-      <MonthPickerWrapper>
-        <span>レビュー集計開始月</span>
-        <StyledMonthPicker defaultValue={start} onChange={(date) => setTermStart(date.getTime())} />
-      </MonthPickerWrapper>
-      <MonthPickerWrapper>
-        <span>レビュー集計終了月</span>
-        <StyledMonthPicker defaultValue={end} onChange={(date) => setTermEnd(date.getTime())} />
-      </MonthPickerWrapper>
-    </>
+  return (
+    <Popover
+      position="right"
+      content={
+        <Wrapper>
+          <MonthPickerWrapper>
+            <span>レビュー集計開始月</span>
+            <StyledMonthPicker defaultValue={start} onChange={(date) => setTermStart(date.getTime())} />
+          </MonthPickerWrapper>
+          <MonthPickerWrapper>
+            <span>レビュー集計終了月</span>
+            <StyledMonthPicker defaultValue={end} onChange={(date) => setTermEnd(date.getTime())} />
+          </MonthPickerWrapper>
+        </Wrapper>
+      }
+      children={<Button icon="calendar" text="レビュー集計期間を設定" />}
+    />
   );
-
-  return <Popover content={content} children={<Button text="レビュー集計期間を指定" />} />;
 };
+
+const Wrapper = styled.div`
+  padding: 6px;
+`;
 
 const MonthPickerWrapper = styled.div`
   display: inline-block;
   vertical-align: middle;
-  margin-right: 8px;
+  margin: 0 4px;
   text-align: center;
 `;
 

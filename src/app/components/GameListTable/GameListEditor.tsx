@@ -1,24 +1,26 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Button, ButtonGroup, EditableText, H5, HTMLSelect, Icon, IOptionProps, TextArea } from '@blueprintjs/core';
+import React, { useMemo } from 'react';
+import {
+  Button,
+  ButtonGroup,
+  EditableText,
+  H5,
+  HTMLSelect,
+  Icon,
+  IOptionProps,
+  Menu,
+  Popover,
+  TextArea,
+} from '@blueprintjs/core';
 import type { ComponentProps } from './container';
-import { useGameListEdit } from './utils';
 import styled from 'styled-components';
 
-interface GameListEditorProps extends Pick<ComponentProps, 'getShownAppIds' | 'entityActions' | 'gameLists'> {
-  onControllerInit: (controller: { current: ReturnType<typeof useGameListEdit> }) => void;
-}
+interface GameListEditorProps extends Pick<ComponentProps, 'gameLists' | 'gameListEditController'> {}
 
-export const GameListEditor = ({
-  getShownAppIds,
-  entityActions: { fetchGameLists },
-  onControllerInit,
-  gameLists,
-}: GameListEditorProps) => {
-  const controller = useGameListEdit(getShownAppIds, fetchGameLists, gameLists);
-  const controllerRef = useRef(controller);
-  controllerRef.current = controller;
+export const GameListEditor = ({ gameListEditController, gameLists }: GameListEditorProps) => {
   const {
     draft,
+    hasUnsavedChange,
+    resetDraft,
     saveChanges,
     createGameList,
     editTarget,
@@ -27,10 +29,7 @@ export const GameListEditor = ({
     setDescription,
     addShownGames,
     removeShownGames,
-  } = controller;
-  useEffect(() => {
-    onControllerInit(controllerRef);
-  }, []);
+  } = gameListEditController;
 
   const options = useMemo<IOptionProps[]>(() => {
     return [
@@ -44,19 +43,30 @@ export const GameListEditor = ({
 
   return (
     <Wrapper>
-      <ButtonGroup>
+      <Header>
         <StyledSelect
           value={editTarget || ''}
           options={options}
           onChange={(event) => setEditTarget(event.currentTarget.value || null)}
         />
-        <Button icon="add" onClick={() => createGameList('新しいゲームリスト')} />
-      </ButtonGroup>
+        <Popover
+          content={
+            <Menu>
+              <Menu.Item
+                text="新しいゲームリストを作成"
+                disabled={hasUnsavedChange}
+                onClick={() => createGameList('新しいゲームリスト')}
+              />
+            </Menu>
+          }
+          children={<Button icon="more" minimal />}
+        />
+      </Header>
 
       {draft ? (
         <EditorWrapper>
           <TitleWrapper>
-            <EditableText key={draft.name} defaultValue={draft.name} onConfirm={setName} />
+            <EditableText key={draft.name} maxLength={16} defaultValue={draft.name} onConfirm={setName} />
             <Icon icon="edit" />
           </TitleWrapper>
           <StyledTextArea
@@ -65,10 +75,19 @@ export const GameListEditor = ({
             placeholder="メモ"
             onBlur={(event) => setDescription(event.currentTarget.value)}
           />
-          <ButtonGroup vertical>
-            <Button text="表示中のアイテムを追加" onClick={() => addShownGames()} />
-            <Button text="表示中のアイテムを除外" onClick={() => removeShownGames()} />
-            <Button text="保存" onClick={() => saveChanges()} />
+          <ButtonGroup>
+            <Button disabled={!hasUnsavedChange} text="保存" onClick={() => saveChanges()} />
+            <Popover
+              position="bottom"
+              content={
+                <Menu>
+                  <Menu.Item text="変更を破棄" disabled={!hasUnsavedChange} onClick={() => resetDraft()} />
+                  <Menu.Item text="表示中の全アイテムをリストに追加" onClick={() => addShownGames()} />
+                  <Menu.Item text="表示中の全アイテムをリストから除外" onClick={() => removeShownGames()} />
+                </Menu>
+              }
+              children={<Button icon="more" />}
+            />
           </ButtonGroup>
         </EditorWrapper>
       ) : null}
@@ -77,24 +96,29 @@ export const GameListEditor = ({
 };
 
 const Wrapper = styled.div`
-  width: 250px;
+  width: 300px;
 `;
 
 const EditorWrapper = styled.div`
   margin-top: 6px;
 `;
 
-const StyledSelect = styled(HTMLSelect)`
+const Header = styled.div`
+  display: flex;
   width: 100%;
 `;
 
+const StyledSelect = styled(HTMLSelect)`
+  flex: 1 0 auto;
+`;
+
 const TitleWrapper = styled(H5)`
-  margin: 0 0 4px 4px;
+  margin-left: 6px;
 `;
 
 const StyledTextArea = styled(TextArea)`
   display: block;
   resize: none;
   width: 100%;
-  margin-bottom: 6px;
+  margin: 6px 0;
 `;
