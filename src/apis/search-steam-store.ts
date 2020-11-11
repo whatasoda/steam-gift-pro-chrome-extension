@@ -8,7 +8,7 @@ interface SearchResponse {
 export const searchSteamStore = async ({ term, start, count }: SetamSearchPrams): Promise<SteamSearchResult | null> => {
   const res = await fetch(
     `https://store.steampowered.com/search/results/?${new URLSearchParams({
-      term,
+      term: term.replace(/-/g, ' ').replace(/\s+/g, ' '),
       start: start.toString(),
       count: count.toString(),
       infinite: '1',

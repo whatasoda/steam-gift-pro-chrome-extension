@@ -18,6 +18,6 @@ import { searchSteamStore } from '../search-steam-store';
 describe('steamSearch', () => {
   it('succeeds without error', async () => {
     // eslint-disable-next-line no-console
-    console.log(await searchSteamStore('Ittle Dew 2+'));
+    console.log(await searchSteamStore({ term: 'Ittle Dew 2+', count: 50, start: 0 }));
   });
 });

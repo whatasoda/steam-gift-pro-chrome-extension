@@ -1,5 +1,5 @@
 import { sendBackgroundMessage } from './send-message';
-import { fetchBypassUrlList, FetchBypassUrl, predefinedContents } from '../utils/constants';
+import { fetchBypassUrlList, FetchBypassUrl, predefinedContents } from './constants';
 
 const nativeFetch = window.fetch;
 

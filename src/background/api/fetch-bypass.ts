@@ -1,4 +1,4 @@
-import { fetchBypassUrlList } from '../../utils/constants';
+import { COMMON_HTTP_HEADER, fetchBypassUrlList } from '../../utils/constants';
 
 export const fetchBypass = (_: any, baseUrl: typeof fetchBypassUrlList[number], extraUrl: string) => {
   if (!fetchBypassUrlList.includes(baseUrl)) {
@@ -22,6 +22,11 @@ export const fetchBypass = (_: any, baseUrl: typeof fetchBypassUrlList[number], 
       }
       return null;
     }
+    case 'https://store.steampowered.com/appreviewhistogram/':
+    case 'https://store.steampowered.com/apphover/': {
+      const gameId = Number(extraUrl.replace(/(?<=^\d+)[^0-9].*$/, ''));
+      return gameId === gameId ? customFetch(baseUrl + gameId) : null;
+    }
     case 'https://steamcdn-a.akamaihd.net/':
     case 'https://steamcommunity-a.akamaihd.net/': {
       if (/^((steamcommunity\/)?(public\/)?(shared\/)?(economy\/)?(images?|css))\//.test(extraUrl)) {
@@ -43,7 +48,9 @@ const serializeHeaders = (headers: Headers) => {
 
 const customFetch = async (...args: Parameters<typeof window.fetch>) => {
   try {
-    const res = await fetch(...args);
+    const req = new Request(...args);
+    Object.entries(COMMON_HTTP_HEADER).forEach((entry) => req.headers.set(...entry));
+    const res = await fetch(req);
     const body = bufferToString(await res.arrayBuffer());
     return {
       body,

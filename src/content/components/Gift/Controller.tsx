@@ -1,11 +1,11 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { takeScreenshot } from '../screenshot';
-import { searchSteamStore } from '../search-steam-store';
+import { takeScreenshot } from '../../../apis/screenshot';
+import { searchSteamStore } from '../../../apis/search-steam-store';
+import { SteamButton } from '../../../fragments/Button';
 import { GameList } from './GameList';
-import { Button } from './Button';
 
-export const GiftController = ({ container, title }: GiftItem) => {
+export const Controller = ({ container, title }: GiftItem) => {
   const [list, setList] = useState<{
     closed: boolean;
     loading: boolean;
@@ -54,14 +54,14 @@ export const GiftController = ({ container, title }: GiftItem) => {
   const children = (
     <div style={{ position: 'absolute', top: '0', left: '0', width: '190px' }}>
       <div>
-        <Button text="スクリーンショット" onClick={onScreenshot} />
+        <SteamButton text="スクリーンショット" onClick={onScreenshot} />
         {list.games.length ? (
-          <Button
+          <SteamButton
             text={list.closed ? '開く' : '閉じる'}
             onClick={() => setList((curr) => ({ ...curr, closed: !curr.closed }))}
           />
         ) : (
-          <Button text="ストアを検索" disabled={list.loading} onClick={onNextSearch} />
+          <SteamButton text="ストアを検索" disabled={list.loading} onClick={onNextSearch} />
         )}
       </div>
       <GameList

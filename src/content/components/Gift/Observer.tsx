@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { GiftController } from './GiftController';
+import { waitFor } from '../../../utils/wait';
+import { Controller } from './Controller';
 
 export const CONTENT_BOX_SELECTOR = 'div[id^="pending_gift_iteminfo_"][id$="_content"]';
 export const TITLE_SELECTOR = 'h1[id^="pending_gift_iteminfo_"][id$="_item_name"]';
 export const THUMBNAIL_SELECTOR = 'img[id^="pending_gift_iteminfo_"][id$="_item_icon"]';
 
-export const Observer = () => {
+export const GiftObserver = () => {
   const [giftItems, setGiftItems] = useState<GiftItem[]>([]);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ export const Observer = () => {
   return (
     <>
       {giftItems.map((giftItem) => (
-        <GiftController key={giftItem.id} {...giftItem} />
+        <Controller key={giftItem.id} {...giftItem} />
       ))}
     </>
   );
@@ -64,13 +65,4 @@ const createGiftItemParser = (maxRetryCount: number, timeout: number, addItem: (
       container,
     });
   };
-};
-
-const waitFor = async <T extends any>(maxRetryCount: number, timeout: number, query: () => T | null) => {
-  for (let i = 0; i < maxRetryCount; i++) {
-    const value = query();
-    if (value) return value;
-    await new Promise((resolve) => setTimeout(resolve, timeout));
-  }
-  return null;
 };

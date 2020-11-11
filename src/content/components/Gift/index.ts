@@ -1,0 +1,1 @@
+export { GiftObserver } from './Observer';
