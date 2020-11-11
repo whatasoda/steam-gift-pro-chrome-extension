@@ -198,16 +198,23 @@ const useFilterState = (
   const [filter] = state;
   const { gameLists, users } = deps;
   useEffect(() => {
-    const appIds = new Set<number>();
-    filter.forEach((index) => {
+    const acc = [new Set<number>(), new Set<number>()] as const;
+    let flag: 0 | 1 = 0;
+    filter.forEach((index, idx) => {
+      const prev = acc[flag];
+      flag = flag ? 0 : 1;
+      const next = acc[flag];
       const entity = gameLists[index] || users[index] || null;
-      entity?.data.games.forEach((appId) => appIds.add(appId));
+      entity?.data.games.forEach((appId) => {
+        if (idx && !prev.has(appId)) return;
+        next.add(appId);
+      });
     });
     setFilterValue({
       excludes: [],
       includes: [],
       ...filterValue,
-      [kind]: [...appIds],
+      [kind]: [...acc[flag]],
     });
   }, [gameLists, users, filter]);
 

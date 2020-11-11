@@ -78,10 +78,16 @@ export const columns: TableOptions<GameFlat>['columns'] = [
 const CSSIndexes = columns.reduce<Record<string, number>>((acc, { accessor, id }, idx) => {
   acc[typeof accessor === 'string' ? accessor : id || ''] = idx + 1;
   return acc;
-}, {}) as Record<'appId' | 'name' | 'releaseDate' | 'up' | 'comp' | 'down' | 'tags' | 'update-button', number>;
+}, {}) as Record<
+  'checkbox' | 'appId' | 'name' | 'releaseDate' | 'up' | 'comp' | 'down' | 'tags' | 'update-button',
+  number
+>;
 
 export const tableCustomCSS = css`
   th {
+    &:nth-child(${CSSIndexes.checkbox}) {
+      width: 16px;
+    }
     &:nth-child(${CSSIndexes.appId}) {
       width: 190px;
     }
