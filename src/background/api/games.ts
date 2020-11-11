@@ -1,6 +1,7 @@
-import { DataStorageStandalone } from '@whatasoda/browser-extension-toolkit/data-storage';
+import { DataStorageStandalone, Entity } from '@whatasoda/browser-extension-toolkit/data-storage';
 import { defaultAdopterChrome } from '@whatasoda/browser-extension-toolkit/data-storage/adopters/chrome';
 import { fetchGameData } from '../../apis/get-game-data';
+import { createQueue } from '../../utils/queue';
 
 const Games = new DataStorageStandalone<Game>('games', 'v1', defaultAdopterChrome);
 const Users = new DataStorageStandalone<User>('users', 'v1', defaultAdopterChrome);
@@ -55,12 +56,21 @@ export const pushUserGameList = async (
 export const updateGameData = async (_: any, appIdList: number[]) => {
   const filter = new RegExp(`^(${appIdList.join('|')})$`);
   const games = await Games.query([[{ key: 'appId', filter }]]);
-  const promises = games.map(async (game) => {
-    const { review, metadata } = await fetchGameData(game.data.appId);
-    const name = metadata?.name || game.data.name;
-    return Games.update(game.index, { ...game.data, review, ...metadata, name });
+
+  return new Promise<Entity<Game>[]>((resolve, reject) => {
+    const acc: Entity<Game>[] = [];
+    const { start, enqueue } = createQueue(10, (err) => (err ? reject(err) : resolve(acc)));
+    games.forEach((game, idx) => {
+      enqueue({
+        onStart: async () => {
+          const { review, metadata } = await fetchGameData(game.data.appId);
+          const name = metadata?.name || game.data.name;
+          acc[idx] = await Games.update(game.index, { ...game.data, review, ...metadata, name });
+        },
+      });
+    });
+    start();
   });
-  return await Promise.all(promises);
 };
 
 export const createGameList = async (_: any, gameList: CustomGameList) => {

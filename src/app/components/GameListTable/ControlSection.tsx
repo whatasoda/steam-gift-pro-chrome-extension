@@ -26,7 +26,7 @@ export const ControlSection = ({
   return (
     <Wrapper>
       <ButtonWrapper vertical>
-        <Button onClick={onUpdateAllGameData} fill text="全データ更新" disabled />
+        <Button onClick={onUpdateAllGameData} fill text="全データ更新" />
         <ReviewTermPicker controller={termController} />
         <ReviewRangePicker table={table} indexes={indexes} info={info} />
         <GameListFilter table={table} indexes={indexes} gameLists={gameLists} users={users} />

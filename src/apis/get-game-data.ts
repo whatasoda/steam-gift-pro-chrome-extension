@@ -1,3 +1,5 @@
+import { COMMON_HTTP_HEADER } from '../utils/constants';
+
 export const fetchGameData = async (gameId: number) => {
   const [review, metadata] = await Promise.all([fetchReviewHistogram(gameId), fetchGameMetadata(gameId)]);
   return { review, metadata };
@@ -18,7 +20,9 @@ interface RecommendationRecordRaw {
 }
 const fetchReviewHistogram = async (gameId: number): Promise<ReviewHistogram | null> => {
   try {
-    const res = await fetch('https://store.steampowered.com/appreviewhistogram/' + gameId);
+    const res = await fetch('https://store.steampowered.com/appreviewhistogram/' + gameId, {
+      headers: COMMON_HTTP_HEADER,
+    });
     const json: { success: number; results: ReviewHistogramRaw } = await res.json();
     if (!json.success) return null;
 
@@ -46,7 +50,9 @@ const convertRecommendationRecord = ({
 
 const fetchGameMetadata = async (gameId: number): Promise<GameMetadata | null> => {
   try {
-    const res = await fetch('https://store.steampowered.com/apphover/' + gameId);
+    const res = await fetch('https://store.steampowered.com/apphover/' + gameId, {
+      headers: COMMON_HTTP_HEADER,
+    });
     const hoverHTML = await res.text();
     if (!hoverHTML.trim()) return null;
 
