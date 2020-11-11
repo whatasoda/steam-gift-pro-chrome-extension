@@ -20,13 +20,18 @@ export const ControlSection = ({
   termController,
   gameListEditController,
 }: ControlSectionProps) => {
-  const { onUpdateAllGameData } = entityActions;
+  const { onUpdateAllGameData, isLoading } = entityActions;
   const { tags } = info;
   const { columns } = table;
   return (
     <Wrapper>
       <ButtonWrapper vertical>
-        <Button onClick={onUpdateAllGameData} fill text="全データ更新" />
+        <Button
+          disabled={isLoading}
+          icon="refresh"
+          onClick={onUpdateAllGameData}
+          text={isLoading ? '更新中' : '表示中のゲームの情報を更新'}
+        />
         <ReviewTermPicker controller={termController} />
         <ReviewRangePicker table={table} indexes={indexes} info={info} />
         <GameListFilter table={table} indexes={indexes} gameLists={gameLists} users={users} />
@@ -43,7 +48,7 @@ const Wrapper = styled.div`
 `;
 
 const ButtonWrapper = styled(ButtonGroup)`
-  width: 200px;
+  width: 230px;
   margin-right: 10px;
   flex: 0 0 auto;
 `;

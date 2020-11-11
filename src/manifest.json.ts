@@ -38,5 +38,6 @@ export = JSONFile<chrome.runtime.Manifest>(true, async () => ({
   page_action: {
     default_icon: 'assets/logo.png',
   },
+  web_accessible_resources: ['app/*'],
   permissions: ['storage', 'unlimitedStorage', ...fetchBypassUrlList.map((url) => `${url}*`)],
 }));

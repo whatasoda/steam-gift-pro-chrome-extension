@@ -14,6 +14,7 @@ export const useEntities = (getShownItemIds: () => number[]) => {
   const [games, setEntities] = useState<Entity<Game>[]>([]);
   const [gameLists, setGameLists] = useState<GameListRecord>({});
   const [users, setUsers] = useState<UserRecord>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchGames = async () => {
     setEntities(await sendBackgroundMessage('getAllGames'));
@@ -32,8 +33,17 @@ export const useEntities = (getShownItemIds: () => number[]) => {
   };
 
   const onUpdateAllGameData = async () => {
+    const ids = getShownItemIds();
+    if (ids.length > 100) {
+      const answer = window.confirm(
+        `表示中の${ids.length}個のゲームの情報を更新しようとしています。この処理は時間にはかかる可能性があります。続行しますか？`,
+      );
+      if (!answer) return;
+    }
+    setIsLoading(true);
     await sendBackgroundMessage('updateGameData', getShownItemIds());
     await fetchGames();
+    setIsLoading(false);
   };
 
   const onUpdateGameData = async (appId: number) => {
@@ -57,7 +67,7 @@ export const useEntities = (getShownItemIds: () => number[]) => {
 
   return [
     { games, gameLists, users },
-    { onUpdateAllGameData, onUpdateGameData, fetchGames, fetchUsers, fetchGameLists },
+    { isLoading, onUpdateAllGameData, onUpdateGameData, fetchGames, fetchUsers, fetchGameLists },
   ] as const;
 };
 

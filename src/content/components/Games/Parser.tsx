@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Button } from '../../../fragments/Button';
+import { SteamButton } from '../../../fragments/Button';
 import { sendBackgroundMessage } from '../../../utils/send-message';
 
 export const GamesParser = () => {
@@ -22,7 +22,7 @@ export const GamesParser = () => {
 
   const children = (
     <>
-      <Button
+      <SteamButton
         text={
           status === 'ready'
             ? '読み込む'
@@ -42,6 +42,10 @@ export const GamesParser = () => {
             });
           }
         }}
+      />{' '}
+      <SteamButton
+        text="読み込み済みのゲーム一覧を表示"
+        onClick={() => window.open('chrome-extension://mfcdhhliiebfhodiojakbclkgfcplleo/app/index.html', '_blank')}
       />
     </>
   );

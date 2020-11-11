@@ -6,7 +6,7 @@ interface ButtonProps {
   onClick: () => void;
 }
 
-export const Button = ({ text, onClick, disabled }: ButtonProps) => (
+export const SteamButton = ({ text, onClick, disabled }: ButtonProps) => (
   <a
     href="#"
     style={{ marginBottom: '8px' }}
