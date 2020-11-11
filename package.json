@@ -6,7 +6,7 @@
     "dev": "node scripts/dev.js",
     "dev:ext": "NODE_ENV=development webpack --watch --config scripts/webpack/extension.config.js",
     "dev:app": "NODE_ENV=development webpack --watch --config scripts/webpack/app.config.js",
-    "build": "npm run clean:before && npm run build:ext npm run build:app && npm run build:copy && npm run clean:after",
+    "build": "npm run clean:before && npm run build:ext && npm run build:app && npm run build:copy && npm run clean:after",
     "build:ext": "NODE_ENV=production webpack --config scripts/webpack/extension.config.js",
     "build:app": "NODE_ENV=production webpack --config scripts/webpack/app.config.js",
     "build:copy": "cpy package.json LICENSE dist/",
