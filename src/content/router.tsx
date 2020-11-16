@@ -5,7 +5,7 @@ import { GiftObserver } from './components/Gift';
 // only pathname + search after https://steamcommunity.com/
 const routes = {
   gift: {
-    pathname: /^\/profiles\/\d+\/inventory\/?$/,
+    pathname: /^\/(profiles\/\d+|id\/[^/]+)\/inventory\/?$/,
   },
   games: {
     pathname: /^\/(profiles\/\d+|id\/[^/]+)\/games\/?$/,

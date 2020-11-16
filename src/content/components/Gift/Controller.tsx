@@ -4,6 +4,7 @@ import { takeScreenshot } from '../../../apis/screenshot';
 import { searchSteamStore } from '../../../apis/search-steam-store';
 import { SteamButton } from '../../../fragments/Button';
 import { GameList } from './GameList';
+import { THUMBNAIL_SELECTOR } from './Observer';
 
 export const Controller = ({ container, title }: GiftItem) => {
   const [list, setList] = useState<{
@@ -32,9 +33,12 @@ export const Controller = ({ container, title }: GiftItem) => {
   }, []);
 
   const onScreenshot = async () => {
-    portalContainer.style.display = 'none';
-    await takeScreenshot(container, title || 'unknown');
-    portalContainer.style.display = 'block';
+    portalContainer.setAttribute('data-screenshot-ignore', 'true');
+    const thumbnail = container.querySelector<HTMLImageElement>(THUMBNAIL_SELECTOR);
+    if (thumbnail) {
+      thumbnail.src = thumbnail.src.replace(/(?<=\d+x\d+)(?<!\.jpg)$/, '.jpg');
+    }
+    takeScreenshot(container, title || 'unknown', '.pending_gift');
   };
 
   const onNextSearch = async () => {

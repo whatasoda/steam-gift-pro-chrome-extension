@@ -1,31 +1,33 @@
-import { toPng } from 'html-to-image';
+import { sendBackgroundMessage } from '../utils/send-message';
 
-export const takeScreenshot = (target: HTMLElement, title: string) => {
-  return prepare().then(() => {
-    return toPng(target).then((dataUrl) => {
-      const downloader = document.createElement('a');
-      downloader.href = dataUrl;
-      downloader.download = title;
-      downloader.click();
+export const takeScreenshot = (target: HTMLElement, title: string, targetSelector: string) => {
+  const stylesheets = Array.from(document.styleSheets).map(({ ownerNode }) => {
+    return (ownerNode as HTMLElement).outerHTML;
+  });
+  Array.from(target.querySelectorAll('script')).forEach((script) => {
+    script.remove();
+  });
+
+  let content = target.outerHTML;
+  let parent = target.parentElement;
+  while (parent && parent !== document.documentElement) {
+    const attributes = Array.from(parent.attributes).map((node) => {
+      return `${node.name}="${node.textContent}"`;
     });
+    const tagName = parent === document.body ? 'div' : parent.tagName.toLowerCase();
+    content = `<${tagName} ${attributes.join(' ')}>${content}</${tagName}>`;
+    parent = parent.parentElement;
+  }
+
+  sendBackgroundMessage('takeScreenshot', {
+    title,
+    content,
+    stylesheets,
+    targetSelector,
+  }).then((dataUrl) => {
+    const downloader = document.createElement('a');
+    downloader.href = dataUrl;
+    downloader.download = `${title}.png`;
+    downloader.click();
   });
-};
-
-let isPrepared = false;
-const prepare = async () => {
-  if (isPrepared) return Promise.resolve();
-
-  isPrepared = true;
-  const pseudoStyleSheetsPromises = Array.from(document.styleSheets).map(async (styleSheet) => {
-    if (styleSheet.href) {
-      const res = await fetch(styleSheet.href);
-      const style = document.createElement('style');
-      style.innerHTML = await res.text();
-      return style.sheet!;
-    } else {
-      styleSheet;
-    }
-  });
-
-  Object.defineProperty(document, 'styleSheets', { value: Promise.all(pseudoStyleSheetsPromises) });
 };

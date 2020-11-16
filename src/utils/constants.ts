@@ -5,8 +5,6 @@ export const fetchBypassUrlList = [
   'https://store.steampowered.com/search/results/',
   'https://store.steampowered.com/appreviewhistogram/',
   'https://store.steampowered.com/apphover/',
-  'https://steamcommunity-a.akamaihd.net/',
-  'https://steamcdn-a.akamaihd.net/',
 ] as const;
 
 export const predefinedContents = {
