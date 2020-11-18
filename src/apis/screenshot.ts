@@ -1,6 +1,6 @@
 import { sendBackgroundMessage } from '../utils/send-message';
 
-export const takeScreenshot = (target: HTMLElement, title: string, targetSelector: string) => {
+export const takeScreenshot = (target: HTMLElement, targetSelector: string) => {
   const stylesheets = Array.from(document.styleSheets).map(({ ownerNode }) => {
     return (ownerNode as HTMLElement).outerHTML;
   });
@@ -19,15 +19,16 @@ export const takeScreenshot = (target: HTMLElement, title: string, targetSelecto
     parent = parent.parentElement;
   }
 
-  sendBackgroundMessage('takeScreenshot', {
-    title,
+  return sendBackgroundMessage('takeScreenshot', {
     content,
     stylesheets,
     targetSelector,
-  }).then((dataUrl) => {
-    const downloader = document.createElement('a');
-    downloader.href = dataUrl;
-    downloader.download = `${title}.png`;
-    downloader.click();
   });
+};
+
+export const openDownload = (dataUrl: string, title: string, ext?: string) => {
+  const downloader = document.createElement('a');
+  downloader.href = dataUrl;
+  downloader.download = ext ? `${title}.${ext}` : title;
+  downloader.click();
 };

@@ -1,27 +1,13 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { takeScreenshot } from '../../../apis/screenshot';
-import { searchSteamStore } from '../../../apis/search-steam-store';
+import { openDownload, takeScreenshot } from '../../../apis/screenshot';
 import { SteamButton } from '../../../fragments/Button';
-import { GameList } from './GameList';
 import { THUMBNAIL_SELECTOR } from './Observer';
 
-export const Controller = ({ container, title }: GiftItem) => {
-  const [list, setList] = useState<{
-    closed: boolean;
-    loading: boolean;
-    games: GameItem[];
-    nextSearchParams: SetamSearchPrams | null;
-  }>(() => ({
-    closed: true,
-    loading: false,
-    games: [],
-    nextSearchParams: {
-      term: title!,
-      start: 0,
-      count: 5,
-    },
-  }));
+export const Controller = ({ container, title, link }: GiftItem) => {
+  const [SSS, setSSS] = useState({ loading: false, canceled: false });
+  const SSSRef = useRef(SSS);
+  SSSRef.current = SSS;
 
   const portalContainer = useMemo(() => document.createElement('div'), []);
   useEffect(() => {
@@ -30,52 +16,43 @@ export const Controller = ({ container, title }: GiftItem) => {
     portalContainer.style.right = '-30px';
     container.style.position = 'relative';
     container.appendChild(portalContainer);
+    const thumbnail = container.querySelector<HTMLHeadingElement>(THUMBNAIL_SELECTOR);
+    if (thumbnail) {
+      thumbnail.style.cursor = 'pointer';
+      thumbnail.addEventListener('click', onStorePageOpen);
+    }
   }, []);
 
-  const onScreenshot = async () => {
+  const onScreenshotStart = async () => {
+    setSSS({ canceled: false, loading: true });
     portalContainer.setAttribute('data-screenshot-ignore', 'true');
     const thumbnail = container.querySelector<HTMLImageElement>(THUMBNAIL_SELECTOR);
     if (thumbnail) {
       thumbnail.src = thumbnail.src.replace(/(?<=\d+x\d+)(?<!\.jpg)$/, '.jpg');
     }
-    takeScreenshot(container, title || 'unknown', '.pending_gift');
+    const dataUrl = await takeScreenshot(container, '.pending_gift');
+
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    if (SSSRef.current.canceled) return;
+    openDownload(dataUrl, title, 'png');
+    setSSS({ canceled: false, loading: false });
   };
 
-  const onNextSearch = async () => {
-    if (!list.nextSearchParams) return;
-    setList((curr) => ({ ...curr, loading: true }));
-    return searchSteamStore(list.nextSearchParams).then((result) => {
-      if (!result) return;
-      setList(({ games }) => ({
-        closed: false,
-        loading: false,
-        games: [...games, ...result.games],
-        nextSearchParams: result.next,
-      }));
-    });
+  const onScreenshotCancel = () => {
+    setSSS({ canceled: true, loading: false });
   };
+
+  const onStorePageOpen = () => window.open(link, '_blank');
 
   const children = (
     <div style={{ position: 'absolute', top: '0', left: '0', width: '190px' }}>
-      <div>
-        <SteamButton text="スクリーンショット" onClick={onScreenshot} />
-        {list.games.length ? (
-          <SteamButton
-            text={list.closed ? '開く' : '閉じる'}
-            onClick={() => setList((curr) => ({ ...curr, closed: !curr.closed }))}
-          />
-        ) : (
-          <SteamButton text="ストアを検索" disabled={list.loading} onClick={onNextSearch} />
-        )}
-      </div>
-      <GameList
-        listClosed={list.closed}
-        ended={!list.nextSearchParams}
-        games={list.games}
-        onNextSearch={onNextSearch}
-        checkExactMatch={(t) => t === title}
-      />
-      {list.loading ? 'Loading...' : null}
+      <SteamButton text="ストアページ" onClick={onStorePageOpen} />
+      {SSS.loading ? (
+        <SteamButton text="キャンセル" onClick={onScreenshotCancel} />
+      ) : (
+        <SteamButton text="スクリーンショット" onClick={onScreenshotStart} />
+      )}
     </div>
   );
 

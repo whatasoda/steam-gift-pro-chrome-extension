@@ -1,7 +1,6 @@
 import { toPng } from 'html-to-image';
 
 interface ScreenshotContext {
-  title: string;
   stylesheets: string[];
   content: string;
   targetSelector: string;
