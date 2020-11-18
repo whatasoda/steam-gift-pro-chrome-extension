@@ -1,5 +1,5 @@
 import { version } from '../package.json';
-import { fetchBypassUrlList } from './utils/constants';
+import { fetchBypassUrlList, steamCDNList } from './utils/constants';
 
 const JSONFile = <T>(cacheable: boolean, gen: () => Promise<T>) => async () => ({
   cacheable,
@@ -39,5 +39,5 @@ export = JSONFile<chrome.runtime.Manifest>(true, async () => ({
     default_icon: 'assets/logo.png',
   },
   web_accessible_resources: ['app/*'],
-  permissions: ['storage', 'unlimitedStorage', ...fetchBypassUrlList.map((url) => `${url}*`)],
+  permissions: ['storage', 'unlimitedStorage', ...[...fetchBypassUrlList, ...steamCDNList].map((url) => `${url}*`)],
 }));

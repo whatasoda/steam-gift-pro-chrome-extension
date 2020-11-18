@@ -1,16 +1,11 @@
 import { sendBackgroundMessage } from './send-message';
-import { fetchBypassUrlList, FetchBypassUrl, predefinedContents } from './constants';
+import { fetchBypassUrlList, FetchBypassUrl } from './constants';
 
 const nativeFetch = window.fetch;
 
 const urlPattern = new RegExp(`^(${fetchBypassUrlList.map((url) => url.replace(/\./g, '\\.')).join('|')})(.*)$`);
 
 export const fetch: typeof window.fetch = (input, init) => {
-  if (typeof input === 'string' && input in predefinedContents) {
-    const body = predefinedContents[input as keyof typeof predefinedContents];
-    return Promise.resolve(new Response(stringToBuffer(atob(body)), { status: 200, statusText: 'OK' }));
-  }
-
   const req = typeof input === 'string' ? new Request(input, init) : input;
 
   if (req.method.toUpperCase() === 'GET') {

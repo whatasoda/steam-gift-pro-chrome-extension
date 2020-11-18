@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { waitFor } from '../../../utils/wait';
 import { Controller } from './Controller';
 
 export const CONTENT_BOX_SELECTOR = 'div[id^="pending_gift_iteminfo_"][id$="_content"]';
@@ -10,7 +9,7 @@ export const GiftObserver = () => {
   const [giftItems, setGiftItems] = useState<GiftItem[]>([]);
 
   useEffect(() => {
-    const parseGiftItem = createGiftItemParser(50, 100, (item) => {
+    const parseGiftItem = createGiftItemParser((item) => {
       setGiftItems((curr) => [...curr, item]);
     });
 
@@ -46,21 +45,41 @@ const forEachBoxElement = (nodes: NodeList, callback: (node: HTMLElement) => voi
   });
 };
 
-const createGiftItemParser = (maxRetryCount: number, timeout: number, addItem: (item: GiftItem) => void) => {
+interface GiftRawInfo {
+  id: string;
+  name: string;
+  actions: { name: string; link: string }[];
+}
+
+const createGiftItemParser = (addItem: (item: GiftItem) => void) => {
   return async function parseGiftItem(contentBox: HTMLElement) {
     const id = ~~contentBox.id.slice(/* pending_gift_iteminfo_ */ 22, -8 /* _content */);
     const container = contentBox.parentElement?.parentElement?.parentElement?.parentElement;
-
     if (!container) return;
 
-    const title = await waitFor(maxRetryCount, timeout, () => {
-      const titleElement = contentBox.querySelector(TITLE_SELECTOR);
-      return titleElement?.textContent || null;
-    });
+    const dataContainer = container.querySelector('script');
+    if (!dataContainer) return;
+
+    const [dataJSON] = dataContainer.innerHTML.match(
+      /(?<=^\s*BuildHover\(\s*'pending_gift_iteminfo_\d+',\s*).+(?=,\s*UserYou\s*\);$)/m,
+    ) || ['{}'];
+
+    let data: GiftRawInfo;
+    try {
+      data = JSON.parse(dataJSON) as GiftRawInfo;
+    } catch (e) {
+      return;
+    }
+    if (!data) return;
+
+    const { actions, name } = data;
+    const action = actions.find(({ link }) => link && link.startsWith('https://store.steampowered.com/app/'));
+    if (!action) return;
 
     addItem({
       id,
-      title: title || undefined,
+      title: name,
+      link: action.link,
       contentBox,
       container,
     });

@@ -20,7 +20,8 @@ declare global {
 
   interface GiftItem {
     id: number;
-    title?: string;
+    link: string;
+    title: string;
     container: HTMLElement;
     contentBox: HTMLElement;
   }
