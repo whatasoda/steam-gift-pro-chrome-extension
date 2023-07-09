@@ -1,5 +1,5 @@
 import { version } from '../package.json';
-import { fetchBypassUrlList, steamCDNList } from './utils/constants';
+import { steamCDNList } from './utils/constants';
 
 const JSONFile = <T>(cacheable: boolean, gen: () => Promise<T>) => async () => ({
   cacheable,
@@ -26,9 +26,6 @@ export = JSONFile<chrome.runtime.Manifest>(true, async () => ({
   description: 'A Chrome Extension that enhances Gift Page of Steam, to add anchor link to store page',
   author: 'whatasoda <git@whatasoda.me>',
   icons: { '128': 'assets/logo.png' },
-  background: {
-    scripts: ['background.js'],
-  },
   content_scripts: [
     {
       matches: ['https://steamcommunity.com/*'],
@@ -38,6 +35,5 @@ export = JSONFile<chrome.runtime.Manifest>(true, async () => ({
   page_action: {
     default_icon: 'assets/logo.png',
   },
-  web_accessible_resources: ['app/*'],
-  permissions: ['storage', 'unlimitedStorage', ...[...fetchBypassUrlList, ...steamCDNList].map((url) => `${url}*`)],
+  permissions: ['storage', 'unlimitedStorage', ...[...steamCDNList].map((url) => `${url}*`)],
 }));
