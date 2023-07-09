@@ -1,20 +1,33 @@
 const path = require('path');
-const { merge } = require('webpack-merge');
-const { default: BaseConfig } = require('@whatasoda/browser-extension-toolkit/webpack-base-config');
+const TerserPlugin = require('terser-webpack-plugin');
+
 require('ts-node').register({ transpileOnly: true });
 
-const { rules, ...base } = BaseConfig(process.env.NODE_ENV, {
-  dist: path.resolve(__dirname, '../../dist'),
-  entrypoints: path.resolve(__dirname, '../../src/entrypoints'),
-});
+const mode = process.env.NODE_ENV;
 
-module.exports = merge(base, {
+module.exports = {
+  devtool: mode !== 'production' ? 'source-map' : 'nosources-source-map',
+  entry: {
+    content: path.resolve(__dirname, '../../src/entrypoints/content.tsx'),
+  },
+  output: {
+    path: path.resolve(__dirname, '../../dist'),
+    filename: '[name].js',
+  },
   resolve: {
     extensions: ['.json', '.js', '.ts', '.tsx'],
   },
   module: {
     rules: [
-      ...rules,
+      {
+        enforce: 'pre',
+        test: /\.tsx?$/i,
+        use: [{ loader: 'ts-loader', options: { transpileOnly: true } }],
+      },
+      {
+        test: /\.json\.tsx?$/i,
+        use: [{ loader: 'file-loader', options: { name: '[name]' } }, { loader: 'val-loader' }],
+      },
       {
         test: /\.(jpg|png|gif|webp|svg)$/i,
         include: /\/assets\//,
@@ -30,4 +43,20 @@ module.exports = merge(base, {
       },
     ],
   },
-});
+  optimization: {
+    minimize: mode === 'production',
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          sourceMap: false,
+          compress: {
+            drop_console: true,
+          },
+          output: {
+            comments: false,
+          },
+        },
+      }),
+    ],
+  },
+};
