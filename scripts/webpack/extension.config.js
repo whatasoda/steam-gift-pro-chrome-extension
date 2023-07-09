@@ -9,6 +9,7 @@ module.exports = {
   devtool: mode !== 'production' ? 'source-map' : 'nosources-source-map',
   entry: {
     content: path.resolve(__dirname, '../../src/entrypoints/content.tsx'),
+    background: path.resolve(__dirname, '../../src/entrypoints/background.ts'),
   },
   output: {
     path: path.resolve(__dirname, '../../dist'),
