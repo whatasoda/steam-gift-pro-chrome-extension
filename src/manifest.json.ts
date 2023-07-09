@@ -1,5 +1,5 @@
 import { version } from '../package.json';
-import { steamCDNList } from './utils/constants';
+import { steamCDNList } from './constants';
 
 const JSONFile = <T>(cacheable: boolean, gen: () => Promise<T>) => async () => ({
   cacheable,
@@ -20,7 +20,7 @@ const key = [
 
 export = JSONFile<chrome.runtime.Manifest>(true, async () => ({
   key: key.join(''),
-  manifest_version: 2,
+  manifest_version: 3,
   version,
   name: 'Steam Gift Pro',
   description: 'A Chrome Extension that enhances Gift Page of Steam, to add anchor link to store page',
@@ -32,8 +32,9 @@ export = JSONFile<chrome.runtime.Manifest>(true, async () => ({
       js: ['content.js'],
     },
   ],
-  page_action: {
-    default_icon: 'assets/logo.png',
+  background: {
+    service_worker: 'background.js',
+    type: 'module',
   },
-  permissions: ['storage', 'unlimitedStorage', ...[...steamCDNList].map((url) => `${url}*`)],
+  host_permissions: [...steamCDNList].map((url) => `${url}*`),
 }));
