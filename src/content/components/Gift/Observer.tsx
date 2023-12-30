@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Controller } from './Controller';
+import React, { useEffect, useState } from "react";
+import { Controller } from "./Controller";
 
-export const CONTENT_BOX_SELECTOR = 'div[id^="pending_gift_iteminfo_"][id$="_content"]';
-export const TITLE_SELECTOR = 'h1[id^="pending_gift_iteminfo_"][id$="_item_name"]';
-export const THUMBNAIL_SELECTOR = 'img[id^="pending_gift_iteminfo_"][id$="_item_icon"]';
+export const CONTENT_BOX_SELECTOR =
+  'div[id^="pending_gift_iteminfo_"][id$="_content"]';
+export const TITLE_SELECTOR =
+  'h1[id^="pending_gift_iteminfo_"][id$="_item_name"]';
+export const THUMBNAIL_SELECTOR =
+  'img[id^="pending_gift_iteminfo_"][id$="_item_icon"]';
 
 export const GiftObserver = () => {
   const [giftItems, setGiftItems] = useState<GiftItem[]>([]);
@@ -35,12 +38,17 @@ export const GiftObserver = () => {
   );
 };
 
-const forEachBoxElement = (nodes: NodeList, callback: (node: HTMLElement) => void) => {
+const forEachBoxElement = (
+  nodes: NodeList,
+  callback: (node: HTMLElement) => void
+) => {
   nodes.forEach((node) => {
     if (node instanceof HTMLElement) {
-      node.querySelectorAll<HTMLElement>(CONTENT_BOX_SELECTOR).forEach((contentBox) => {
-        callback(contentBox);
-      });
+      node
+        .querySelectorAll<HTMLElement>(CONTENT_BOX_SELECTOR)
+        .forEach((contentBox) => {
+          callback(contentBox);
+        });
     }
   });
 };
@@ -53,27 +61,39 @@ interface GiftRawInfo {
 
 const createGiftItemParser = (addItem: (item: GiftItem) => void) => {
   return async function parseGiftItem(contentBox: HTMLElement) {
-    const id = ~~contentBox.id.slice(/* pending_gift_iteminfo_ */ 22, -8 /* _content */);
-    const container = contentBox.parentElement?.parentElement?.parentElement?.parentElement;
+    const id = ~~contentBox.id.slice(
+      /* pending_gift_iteminfo_ */ 22,
+      -8 /* _content */
+    );
+    const container =
+      contentBox.parentElement?.parentElement?.parentElement?.parentElement;
     if (!container) return;
 
-    const dataContainer = container.querySelector('script');
-    if (!dataContainer) return;
+    const dataContainers = Array.from(container.querySelectorAll("script"));
+    const dataJson = dataContainers
+      .map(
+        (container) =>
+          container.innerHTML.match(
+            /(?<=^\s*BuildHover\(\s*'pending_gift_iteminfo_\d+',\s*).+(?=,\s*UserYou\s*\);$)/m
+          )?.[0] ?? null
+      )
+      .filter((value) => Boolean(value))[0];
 
-    const [dataJSON] = dataContainer.innerHTML.match(
-      /(?<=^\s*BuildHover\(\s*'pending_gift_iteminfo_\d+',\s*).+(?=,\s*UserYou\s*\);$)/m,
-    ) || ['{}'];
+    if (!dataJson) return;
 
     let data: GiftRawInfo;
     try {
-      data = JSON.parse(dataJSON) as GiftRawInfo;
+      data = JSON.parse(dataJson) as GiftRawInfo;
     } catch (e) {
       return;
     }
     if (!data) return;
 
     const { actions, name } = data;
-    const action = actions.find(({ link }) => link && link.startsWith('https://store.steampowered.com/app/'));
+    const action = actions.find(
+      ({ link }) =>
+        link && link.startsWith("https://store.steampowered.com/app/")
+    );
     if (!action) return;
 
     addItem({
